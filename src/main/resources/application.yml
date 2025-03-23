@@ -1,14 +1,14 @@
 spring:
   datasource:
-    url: jdbc:sqlite:./data/moss.db?enable_load_extension=true
+    url: jdbc:sqlite:./moss.db?enable_load_extension=true
     driver-class-name: org.sqlite.JDBC
     hikari:
-      connection-init-sql: SELECT load_extension('data/sqlite-vec/vec0.ext')
+      connection-init-sql: SELECT load_extension('${SQLITE_VEC_LIB}');
 
   sql:
     init:
       mode: always
-      schema-locations: classpath:sql/schema.sql
+      schema-locations: classpath:infra/sql/schema.sql
 
 logging:
   level:
@@ -17,7 +17,7 @@ logging:
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
-  mapper-locations: classpath:mapper/*.xml
+  mapper-locations: classpath:infra/mapper/*.xml
   type-handlers-package: io.github.oldmanpushcart.moss.infra.ibatis.type
 
 moss:
