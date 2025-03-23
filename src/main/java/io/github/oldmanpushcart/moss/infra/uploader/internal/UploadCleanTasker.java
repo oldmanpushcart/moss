@@ -6,7 +6,6 @@ import io.github.oldmanpushcart.moss.infra.uploader.internal.dao.UploadEntryDao;
 import io.github.oldmanpushcart.moss.infra.uploader.internal.domain.UploadEntryDO;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

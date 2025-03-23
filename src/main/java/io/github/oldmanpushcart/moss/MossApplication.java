@@ -19,7 +19,7 @@ public class MossApplication {
 
     private static void copySqliteVecExt() {
         final var sourcePath = "sqlite-vec/vec0.dll";
-        final var targetPath = Paths.get(System.getProperty("user.dir"), "sqlite-vec", "vec0.ext");
+        final var targetPath = Paths.get(System.getProperty("user.dir"), "data", "sqlite-vec", "vec0.ext");
         if (!Files.exists(targetPath)) {
             try {
                 Files.createDirectories(targetPath.getParent());
