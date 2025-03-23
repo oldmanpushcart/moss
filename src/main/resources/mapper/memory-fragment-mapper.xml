@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.oldmanpushcart.moss.infra.memory.internal.dao.MemoryFragmentDao">
+
+    <insert id="insert"
+            useGeneratedKeys="true"
+            keyProperty="fragmentId"
+            keyColumn="FRAGMENT_ID"
+            parameterType="io.github.oldmanpushcart.moss.infra.memory.internal.domain.MemoryFragmentDO">
+        INSERT INTO MEMORY_FRAGMENTS
+        (
+            UUID,
+            TOKENS,
+            REQUEST_MESSAGE_JSON,
+            RESPONSE_MESSAGE_JSON,
+            CREATED_AT
+        )
+        VALUES (
+            #{uuid},
+            #{tokens},
+            #{requestMessageJson},
+            #{responseMessageJson},
+            strftime('%s', 'now') || substr(strftime('%f', 'now'), 4)
+        )
+    </insert>
+
+    <select id="pagingForIterator"
+            resultType="io.github.oldmanpushcart.moss.infra.memory.internal.domain.MemoryFragmentDO">
+        SELECT
+            *
+        FROM MEMORY_FRAGMENTS
+        WHERE
+            FRAGMENT_ID &lt; #{maxFragmentId}
+        ORDER BY FRAGMENT_ID DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="getById"
+            resultType="io.github.oldmanpushcart.moss.infra.memory.internal.domain.MemoryFragmentDO">
+        SELECT
+            *
+        FROM MEMORY_FRAGMENTS
+        WHERE
+            FRAGMENT_ID = #{fragmentId}
+    </select>
+
+</mapper>

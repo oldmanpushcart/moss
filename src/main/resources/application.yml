@@ -1,0 +1,40 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:./moss.db?enable_load_extension=true
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      connection-init-sql: SELECT load_extension('sqlite-vec/vec0.ext')
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:sql/schema.sql
+
+logging:
+  level:
+    org.springframework.jdbc.datasource.init: DEBUG
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+  mapper-locations: classpath:mapper/*.xml
+  type-handlers-package: io.github.oldmanpushcart.moss.infra.ibatis.type
+
+moss:
+  infra:
+    memory:
+      max-tokens: 100000
+      max-count: 1000
+      duration: 7d
+    uploader:
+      oss-expires-duration: 48h
+      clean-cron-express: 0 */5 * * * ?
+      clean-batch-size: 100
+      clean-queue-capacity: 1000
+    dashscope:
+      api-key: ${DASHSCOPE_AK}
+      http:
+        connect-timeout: 30s
+        read-timeout: 30s
+        write-timeout: 30s
+        ping-interval: 10s
