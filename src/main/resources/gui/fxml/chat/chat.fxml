@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import io.github.oldmanpushcart.moss.gui.view.AttachmentListView?>
+<AnchorPane prefHeight="800.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="io.github.oldmanpushcart.moss.gui.controller.ChatController">
+
+    <BorderPane layoutX="209.0" layoutY="69.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0"
+                AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <center>
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS" BorderPane.alignment="CENTER">
+                <VBox fx:id="messagesBox"/>
+            </ScrollPane>
+        </center>
+        <bottom>
+            <VBox BorderPane.alignment="CENTER">
+                <AttachmentListView fx:id="attachmentListView" />
+                <ToolBar prefHeight="40.0">
+                    <ToggleButton fx:id="autoSpeakToggleButton" mnemonicParsing="false" text="自动朗读"/>
+                    <ToggleButton fx:id="attachmentToggleButton" mnemonicParsing="false" text="启用附件"/>
+                </ToolBar>
+                <TextArea fx:id="inputTextArea" prefHeight="100.0" prefRowCount="4" wrapText="true"/>
+                <ToolBar nodeOrientation="RIGHT_TO_LEFT" prefHeight="40.0">
+                    <ToggleButton fx:id="enterToggleButton" mnemonicParsing="false" text="发送"/>
+                    <Label disable="true" text="Ctrl+Enter"/>
+                </ToolBar>
+            </VBox>
+        </bottom>
+    </BorderPane>
+
+</AnchorPane>

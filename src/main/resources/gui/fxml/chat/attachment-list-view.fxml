@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<fx:root prefHeight="200.0" prefWidth="600.0" type="AnchorPane" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1">
+
+    <TableView fx:id="attachmentTable"
+               prefHeight="200.0" prefWidth="600.0"
+               AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <columns>
+            <TableColumn fx:id="selectCol"
+                         prefWidth="24.0"
+                         editable="false" resizable="false" sortable="false"
+                         style="-fx-alignment: center_left;" />
+            <TableColumn fx:id="pathCol" text="路径"
+                         prefWidth="425.0"
+                         editable="false" sortable="false"
+                         style="-fx-alignment: center_left;" />
+            <TableColumn fx:id="sizeCol" text="大小"
+                         prefWidth="75.0"
+                         editable="false" resizable="false" sortable="false"
+                         style="-fx-alignment: center_left;" />
+            <TableColumn fx:id="optsCol" text="操作"
+                         prefWidth="75.0"
+                         editable="false" minWidth="0.0" resizable="false" sortable="false"
+                         style="-fx-alignment: center_left;" />
+        </columns>
+    </TableView>
+
+</fx:root>

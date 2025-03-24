@@ -16,5 +16,8 @@ open module moss {
     requires org.xerial.sqlitejdbc;
     requires annotations;
     requires jakarta.annotation;
+    requires javafx.fxml;
+    requires javafx.controls;
+    requires org.apache.commons.io;
 
 }
