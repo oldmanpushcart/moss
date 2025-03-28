@@ -20,7 +20,6 @@ public class MemoryTestCase extends SpringBootSupport {
 
         for(int index = 0; index < 10; index++) {
             final var fragment = new MemoryFragment()
-                    .uuid(UUID.randomUUID().toString())
                     .requestMessage(Message.ofUser("REQUEST: %s!".formatted(index)))
                     .responseMessage(Message.ofAi("RESPONSE: %s!".formatted(index)));
             memory.saveOrUpdate(fragment);

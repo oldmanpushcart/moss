@@ -20,6 +20,7 @@ import javafx.scene.layout.VBox;
 import lombok.AllArgsConstructor;
 
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.github.oldmanpushcart.moss.util.ExceptionUtils.resolveRootCause;
 import static io.github.oldmanpushcart.moss.util.ExceptionUtils.stackTraceToString;
@@ -33,6 +34,7 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
     private final TextArea inputTextArea;
     private final AttachmentListView attachmentListView;
     private final ToggleButton enterToggleButton;
+    private final AtomicBoolean autoScrollToBottomRef;
 
     private final DashscopeClient dashscope;
     private final Memory memory;
@@ -43,6 +45,8 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
         event.consume();
         assert enterToggleButton == event.getSource();
         if (enterToggleButton.isSelected()) {
+
+            autoScrollToBottomRef.set(true);
 
             // 清空输入框并获取文本
             final var inputText = popInputText();
@@ -82,6 +86,11 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
 
     private Disposable onChat(Object source, MessageView responseMessageView, MemoryFragment fragment) {
 
+        Platform.runLater(()-> {
+            responseMessageView.setContent("思考中...");
+            responseMessageView.setButtonBarEnabled(false);
+        });
+
         final var request = ChatRequest.newBuilder()
                 .model(ChatModel.QWEN_MAX)
                 .option(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true)
@@ -105,8 +114,7 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                 .doOnSubscribe(sub -> Platform.runLater(() ->
                         responseMessageView.getRedoButton().setOnAction(event -> {
                             event.consume();
-                            responseMessageView.setContent("思考中...");
-                            responseMessageView.setButtonBarEnabled(false);
+                            autoScrollToBottomRef.set(false);
                             onChat(event.getSource(), responseMessageView, fragment);
                         })))
 
