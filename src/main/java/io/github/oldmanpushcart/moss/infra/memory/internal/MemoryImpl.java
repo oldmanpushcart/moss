@@ -5,15 +5,17 @@ import io.github.oldmanpushcart.dashscope4j.util.LocalTokenizerUtils;
 import io.github.oldmanpushcart.dashscope4j.util.MessageCodec;
 import io.github.oldmanpushcart.moss.infra.memory.Memory;
 import io.github.oldmanpushcart.moss.infra.memory.MemoryConfig;
+import io.github.oldmanpushcart.moss.infra.memory.MemoryFragment;
 import io.github.oldmanpushcart.moss.infra.memory.internal.dao.MemoryFragmentDao;
 import io.github.oldmanpushcart.moss.infra.memory.internal.domain.MemoryFragmentDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Objects;
 
 import static io.github.oldmanpushcart.dashscope4j.api.chat.ChatModel.Mode.MULTIMODAL;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * 记忆体实现
@@ -21,27 +23,29 @@ import static io.github.oldmanpushcart.dashscope4j.api.chat.ChatModel.Mode.MULTI
 @Component
 public class MemoryImpl implements Memory {
 
+    private final MemoryConfig config;
     private final MemoryFragmentDao store;
-    private final FragmentCache cache;
+    private final MemoryCache primaryCache;
 
     @Autowired
     public MemoryImpl(MemoryConfig config, MemoryFragmentDao store) {
+        this.config = config;
         this.store = store;
-        this.cache = new FragmentCache(config);
-        load();
+        this.primaryCache = new MemoryCache(config);
+        loadingCache(primaryCache, Long.MAX_VALUE);
     }
 
     /*
      * 从持久化存储中加载记忆片段
      */
-    private void load() {
-        pagingForLoad(Long.MAX_VALUE, 100);
+    private void loadingCache(MemoryCache cache, long maxFragmentId) {
+        pagingForLoadingCache(cache, maxFragmentId, 100);
     }
 
     /*
      * 从持久化存储中翻页加载记忆片段
      */
-    private void pagingForLoad(long maxFragmentId, int limit) {
+    private void pagingForLoadingCache(MemoryCache cache, long maxFragmentId, int limit) {
 
         // 如果缓存已满，则不再加载
         if (cache.isOverflow()) {
@@ -52,7 +56,7 @@ public class MemoryImpl implements Memory {
         final var fragmentDOs = store.pagingForIterator(maxFragmentId, limit);
 
         // 将一页记忆片段数据加载到缓存中
-        if (!cache.load(() -> fragmentDOs.stream().map(Fragment::fromMemoryFragmentDO).toList())) {
+        if (!cache.load(() -> fragmentDOs.stream().map(MemoryFragmentHelper::fromMemoryFragmentDO).toList())) {
             return;
         }
 
@@ -63,36 +67,66 @@ public class MemoryImpl implements Memory {
 
         // 找到当前页最小的游标，继续翻页查询
         final var minFragmentId = fragmentDOs.get(fragmentDOs.size() - 1).getFragmentId();
-        pagingForLoad(minFragmentId, limit);
+        pagingForLoadingCache(cache, minFragmentId, limit);
 
     }
 
     @Override
-    public List<Message> recall() {
-        return cache.elements()
-                .stream()
-                .flatMap(f -> Stream.of(f.requestMessage(), f.requestMessage()))
-                .toList();
+    public List<MemoryFragment> recall() {
+        return unmodifiableList(primaryCache.elements());
     }
 
+    @Override
+    public List<MemoryFragment> recall(Long maxFragmentId) {
+        if (Objects.isNull(maxFragmentId)) {
+            return recall();
+        }
+
+        final var queryCache = new MemoryCache(config);
+
+        /*
+         * 从主缓存中加载记忆片段到查询缓存
+         */
+        long minFragmentId = maxFragmentId;
+        final var fragmentsInCache = primaryCache.elements();
+        for (final var fragment : fragmentsInCache) {
+            if (fragment.fragmentId() <= maxFragmentId
+                && queryCache.load(() -> List.of(fragment))) {
+                minFragmentId = fragment.fragmentId();
+            }
+        }
+
+        // 从存储中加载记忆片段到查询缓存
+        loadingCache(queryCache, minFragmentId);
+
+        return unmodifiableList(queryCache.elements());
+    }
 
     @Override
-    public void append(String uuid, Message requestMessage, Message responseMessage) {
+    public void saveOrUpdate(MemoryFragment fragment) {
 
-        // 添加到存储
-        final var fragmentDO = new MemoryFragmentDO()
-                .setUuid(uuid)
-                .setTokens(computeMessageTokens(requestMessage) + computeMessageTokens(responseMessage))
-                .setRequestMessageJson(MessageCodec.encodeToJson(MULTIMODAL, requestMessage))
-                .setResponseMessageJson(MessageCodec.encodeToJson(MULTIMODAL, responseMessage));
-        store.insert(fragmentDO);
+        final var mergedDO = new MemoryFragmentDO()
+                .setFragmentId(fragment.fragmentId())
+                .setTokens(computeMessageTokens(fragment.requestMessage()) + computeMessageTokens(fragment.responseMessage()))
+                .setRequestMessageJson(MessageCodec.encodeToJson(MULTIMODAL, fragment.requestMessage()))
+                .setResponseMessageJson(MessageCodec.encodeToJson(MULTIMODAL, fragment.responseMessage()));
 
-        // 重新查询回来
-        final var createdDO = store.getById(fragmentDO.getFragmentId());
+        if (Objects.isNull(mergedDO.getFragmentId())) {
+            store.insert(mergedDO);
+        } else {
+            if (store.update(mergedDO) != 1) {
+                throw new IllegalStateException("Update memory fragment failed!");
+            }
+        }
 
-        // 添加到缓存
-        final var fragment = Fragment.fromMemoryFragmentDO(createdDO);
-        cache.append(fragment);
+        final var existedDO = store.getById(mergedDO.getFragmentId());
+        final var existed = MemoryFragmentHelper.fromMemoryFragmentDO(existedDO);
+        primaryCache.append(existed);
+
+        fragment.fragmentId(existedDO.getFragmentId());
+        fragment.tokens(existedDO.getTokens());
+        fragment.createdAt(existedDO.getCreatedAt());
+        fragment.updatedAt(existedDO.getUpdatedAt());
 
     }
 

@@ -22,11 +22,6 @@ public class MemoryFragmentDO {
     private Long fragmentId;
 
     /**
-     * 对话UUID
-     */
-    private String uuid;
-
-    /**
      * 对话消耗的token数
      */
     private Long tokens;
@@ -45,5 +40,10 @@ public class MemoryFragmentDO {
      * 创建时间
      */
     private Instant createdAt;
+
+    /**
+     * 修改时间
+     */
+    private Instant updatedAt;
 
 }

@@ -14,6 +14,8 @@ public interface MemoryFragmentDao {
 
     void insert(MemoryFragmentDO fragment);
 
+    int update(MemoryFragmentDO fragment);
+
     MemoryFragmentDO getById(long fragmentId);
 
     List<MemoryFragmentDO> pagingForIterator(

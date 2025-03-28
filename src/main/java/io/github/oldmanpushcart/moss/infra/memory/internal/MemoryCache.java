@@ -1,6 +1,7 @@
 package io.github.oldmanpushcart.moss.infra.memory.internal;
 
 import io.github.oldmanpushcart.moss.infra.memory.MemoryConfig;
+import io.github.oldmanpushcart.moss.infra.memory.MemoryFragment;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -13,15 +14,15 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 
 /**
- * 记忆片段缓存
+ * 记忆缓存
  */
-class FragmentCache {
+class MemoryCache {
 
     // 记忆体配置
     private final MemoryConfig config;
 
     // 存储记忆片段排序队列
-    private final TreeSet<Fragment> tree = new TreeSet<>();
+    private final TreeSet<MemoryFragment> tree = new TreeSet<>();
 
     // 缓存中所有记忆片段的总token数
     private volatile long tokens = 0L;
@@ -34,7 +35,7 @@ class FragmentCache {
      *
      * @param config 记忆体配置
      */
-    public FragmentCache(MemoryConfig config) {
+    public MemoryCache(MemoryConfig config) {
         this.config = config;
     }
 
@@ -53,7 +54,7 @@ class FragmentCache {
     /*
      * 测试如果添加是否会溢出
      */
-    private boolean testOverflow(Fragment fragment) {
+    private boolean testOverflow(MemoryFragment fragment) {
         return isNull(config)
                || testIfNonNull(config.getMaxCount(), v -> tree.size() + 1 >= v)
                || testIfNonNull(config.getMaxTokens(), v -> tokens + fragment.tokens() >= v)
@@ -65,7 +66,7 @@ class FragmentCache {
      *
      * @param fragment 记忆片段
      */
-    public synchronized void append(Fragment fragment) {
+    public synchronized void append(MemoryFragment fragment) {
         tree.add(fragment);
         tokens += fragment.tokens();
         earliest = min(earliest, fragment.createdAt());
@@ -89,7 +90,7 @@ class FragmentCache {
     /**
      * @return 获取所有记忆片段
      */
-    public synchronized List<Fragment> elements() {
+    public synchronized List<MemoryFragment> elements() {
         return new ArrayList<>(tree);
     }
 
@@ -119,7 +120,7 @@ class FragmentCache {
          *
          * @return 记忆片段列表
          */
-        List<Fragment> load();
+        List<MemoryFragment> load();
 
     }
 

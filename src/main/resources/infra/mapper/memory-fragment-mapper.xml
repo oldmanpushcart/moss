@@ -9,20 +9,32 @@
             parameterType="io.github.oldmanpushcart.moss.infra.memory.internal.domain.MemoryFragmentDO">
         INSERT INTO MEMORY_FRAGMENTS
         (
-            UUID,
             TOKENS,
             REQUEST_MESSAGE_JSON,
             RESPONSE_MESSAGE_JSON,
-            CREATED_AT
+            CREATED_AT,
+            UPDATED_AT
         )
         VALUES (
-            #{uuid},
             #{tokens},
             #{requestMessageJson},
             #{responseMessageJson},
+            strftime('%s', 'now') || substr(strftime('%f', 'now'), 4),
             strftime('%s', 'now') || substr(strftime('%f', 'now'), 4)
         )
     </insert>
+    <update id="update"
+            parameterType="io.github.oldmanpushcart.moss.infra.memory.internal.domain.MemoryFragmentDO">
+        UPDATE MEMORY_FRAGMENTS
+        <set>
+            <if test="tokens != null">TOKENS = #{tokens},</if>
+            <if test="requestMessageJson != null">REQUEST_MESSAGE_JSON = #{requestMessageJson},</if>
+            <if test="responseMessageJson != null">RESPONSE_MESSAGE_JSON = #{responseMessageJson},</if>
+            UPDATED_AT = strftime('%s', 'now') || substr(strftime('%f', 'now'), 4)
+        </set>
+        WHERE
+            FRAGMENT_ID = #{fragmentId}
+    </update>
 
     <select id="pagingForIterator"
             resultType="io.github.oldmanpushcart.moss.infra.memory.internal.domain.MemoryFragmentDO">

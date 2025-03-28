@@ -1,9 +1,8 @@
 package io.github.oldmanpushcart.moss.gui;
 
-import io.github.oldmanpushcart.moss.gui.controller.ChatController;
+import io.github.oldmanpushcart.moss.gui.view.MessageView;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -12,11 +11,18 @@ public class DebugGuiApp extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
 
-        final var loader = new FXMLLoader(getClass().getResource("/gui/fxml/chat/chat.fxml"));
-        final var root = loader.<Parent>load();
-        final var controller = loader.<ChatController>getController();
+        final var messageView = new MessageView();
+        messageView.setContent("""
+                ## 个人信息
+                |项目|值|
+                |---|---|
+                |姓名|李夏驰|
+                |邮箱|oldmanpushcart@gmail.com|
+                |电话|13989838402|
+                """
+        );
 
-        primaryStage.setScene(new Scene(root));
+        primaryStage.setScene(new Scene(messageView));
         primaryStage.show();
     }
 

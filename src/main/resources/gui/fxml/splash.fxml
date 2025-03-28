@@ -16,7 +16,7 @@
     <VBox prefHeight="359.0" prefWidth="561.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
           AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <ImageView fitHeight="374.0" fitWidth="561.0" pickOnBounds="true" preserveRatio="true">
-            <Image url="@../statics/images/moss-splash-logo.png"/>
+            <Image url="@../statics/image/moss-splash-logo.png"/>
             <viewport>
                 <Rectangle2D height="500.0" minX="60.0" minY="270.0" width="900.0"/>
             </viewport>
