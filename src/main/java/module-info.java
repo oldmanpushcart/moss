@@ -28,5 +28,6 @@ open module moss {
     requires org.apache.commons.text;
     requires org.apache.commons.lang3;
     requires com.fasterxml.jackson.databind;
+    requires java.desktop;
 
 }

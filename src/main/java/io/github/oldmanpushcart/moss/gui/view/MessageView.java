@@ -23,6 +23,8 @@ import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 
+import java.awt.*;
+import java.net.URI;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -81,17 +83,16 @@ public class MessageView extends AnchorPane {
 
     @FXML
     private void initialize() {
-        initializeContentWebView();
-        bindingContentProperty();
-        bindingCopyButtonOnAction();
-
-        bindingEnableButtonBarProperty();
 
         // 监听宽度变化，确保内容高度自适应
         widthProperty().addListener((observable, oldValue, newValue) -> {
             adjustContentViewHeight();
         });
 
+        bindingContentProperty();
+        bindingCopyButtonOnAction();
+        bindingEnableButtonBarProperty();
+        initializeContentWebView();
     }
 
     private void initializeContentWebView() {

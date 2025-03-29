@@ -4,6 +4,7 @@ import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.moss.gui.view.AttachmentListView;
 import io.github.oldmanpushcart.moss.gui.view.MessageView;
 import io.github.oldmanpushcart.moss.infra.memory.Memory;
+import io.github.oldmanpushcart.moss.manager.ChatManager;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -48,11 +49,13 @@ public class ChatController {
     private ToggleButton enterToggleButton;
 
     private final AtomicBoolean autoScrollToBottomRef = new AtomicBoolean(true);
+    private final ChatManager chatManager;
     private final DashscopeClient dashscope;
     private final Memory memory;
 
     @Autowired
-    public ChatController(DashscopeClient dashscope, Memory memory) {
+    public ChatController(ChatManager chatManager, DashscopeClient dashscope, Memory memory) {
+        this.chatManager = chatManager;
         this.dashscope = dashscope;
         this.memory = memory;
     }
@@ -90,6 +93,7 @@ public class ChatController {
                         attachmentListView,
                         enterToggleButton,
                         autoScrollToBottomRef,
+                        chatManager,
                         dashscope,
                         memory
                 ));
