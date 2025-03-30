@@ -17,6 +17,8 @@ public interface UploadEntryDao {
 
     UploadEntryDO getByUploadKey(String uploadKey);
 
+    List<UploadEntryDO> queryByStatus(int status);
+
     List<UploadEntryDO> queryForClean(int limit);
 
     int update(UploadEntryDO entry);

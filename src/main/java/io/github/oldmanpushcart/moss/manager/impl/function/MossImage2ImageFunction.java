@@ -10,6 +10,7 @@ import io.github.oldmanpushcart.dashscope4j.api.image.generation.GenImageOptions
 import io.github.oldmanpushcart.dashscope4j.api.image.generation.GenImageRequest;
 import io.github.oldmanpushcart.dashscope4j.api.image.generation.GenImageResponse;
 import io.github.oldmanpushcart.dashscope4j.task.Task;
+import io.github.oldmanpushcart.moss.infra.downloader.Downloader;
 import io.github.oldmanpushcart.moss.infra.uploader.UploadEntry;
 import io.github.oldmanpushcart.moss.infra.uploader.Uploader;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,7 @@ public class MossImage2ImageFunction
         implements ChatFunction<MossImage2ImageFunction.Parameter, MossImage2ImageFunction.Result> {
 
     private final Uploader uploader;
+    private final Downloader downloader;
 
     @Override
     public CompletionStage<Result> call(Caller caller, Parameter parameter) {
@@ -64,6 +66,7 @@ public class MossImage2ImageFunction
                                             .filter(GenImageResponse.Item::isSuccess)
                                             .map(GenImageResponse.Item::image)
                                             .toList())
+                            .thenCompose(downloader::downloads)
                             .thenApply(Result::new);
                 });
     }

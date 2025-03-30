@@ -10,9 +10,14 @@ class UploadEntryHelper {
     public static UploadEntry toUploadEntry(UploadEntryDO entryDO) {
         return new UploadEntry(
                 entryDO.getEntryId(),
-                entryDO.getUpload(),
                 entryDO.getMime(),
-                entryDO.getLength()
+                entryDO.getLength(),
+                entryDO.getModel(),
+                entryDO.getSource(),
+                entryDO.getUpload(),
+                entryDO.getExpiresAt(),
+                entryDO.getCreatedAt(),
+                entryDO.getUpdatedAt()
         );
     }
 

@@ -4,6 +4,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import io.github.oldmanpushcart.moss.gui.view.UploaderListView?>
 <AnchorPane prefHeight="800.0" prefWidth="600.0"
             xmlns="http://javafx.com/javafx/17.0.12"
             xmlns:fx="http://javafx.com/fxml/1"
@@ -22,10 +23,12 @@
         </center>
         <bottom>
             <VBox BorderPane.alignment="CENTER">
+                <UploaderListView fx:id="uploaderListView"/>
                 <AttachmentListView fx:id="attachmentListView"/>
                 <ToolBar prefHeight="40.0">
                     <ToggleButton fx:id="autoSpeakToggleButton" mnemonicParsing="false" text="自动朗读"/>
                     <ToggleButton fx:id="attachmentToggleButton" mnemonicParsing="false" text="启用附件"/>
+                    <ToggleButton fx:id="uploaderToggleButton" mnemonicParsing="false" text="上传管理"/>
                 </ToolBar>
                 <TextArea fx:id="inputTextArea" prefHeight="100.0" prefRowCount="4" wrapText="true"/>
                 <ToolBar nodeOrientation="RIGHT_TO_LEFT" prefHeight="40.0">

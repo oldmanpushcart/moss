@@ -101,7 +101,7 @@ public class MossGuiApplication extends Application {
     }
 
     @Override
-    public void stop() throws Exception {
+    public void stop() {
         if (null != springCtx) {
             springCtx.close();
         }

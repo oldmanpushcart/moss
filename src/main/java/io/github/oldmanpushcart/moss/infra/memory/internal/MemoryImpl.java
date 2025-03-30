@@ -90,7 +90,7 @@ public class MemoryImpl implements Memory {
         long minFragmentId = maxFragmentId;
         final var fragmentsInCache = primaryCache.elements();
         for (final var fragment : fragmentsInCache) {
-            if (fragment.fragmentId() <= maxFragmentId
+            if (fragment.fragmentId() < maxFragmentId
                 && queryCache.load(() -> List.of(fragment))) {
                 minFragmentId = fragment.fragmentId();
             }

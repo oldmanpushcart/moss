@@ -16,6 +16,8 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.VBox;
 import lombok.AllArgsConstructor;
 
+import java.io.File;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.github.oldmanpushcart.moss.util.ExceptionUtils.resolveRootCause;
@@ -97,9 +99,13 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
             responseMessageView.setButtonBarEnabled(false);
         });
 
+        final var attachments = attachmentListView.isVisible()
+                ? attachmentListView.selected()
+                : Collections.<File>emptyList();
+
         final var stringBuf = new StringBuilder();
         final var referenceDisplayBuf = new StringBuilder();
-        chatManager.chat(fragment, attachmentListView.selected())
+        chatManager.chat(fragment, attachments)
                 .thenAccept(responseFlow -> responseFlow
 
                         // 构建引用

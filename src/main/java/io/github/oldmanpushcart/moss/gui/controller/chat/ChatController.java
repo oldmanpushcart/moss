@@ -3,7 +3,9 @@ package io.github.oldmanpushcart.moss.gui.controller.chat;
 import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.moss.gui.view.AttachmentListView;
 import io.github.oldmanpushcart.moss.gui.view.MessageView;
+import io.github.oldmanpushcart.moss.gui.view.UploaderListView;
 import io.github.oldmanpushcart.moss.infra.memory.Memory;
+import io.github.oldmanpushcart.moss.infra.uploader.Uploader;
 import io.github.oldmanpushcart.moss.manager.ChatManager;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -34,6 +36,9 @@ public class ChatController {
     private VBox messagesBox;
 
     @FXML
+    private UploaderListView uploaderListView;
+
+    @FXML
     private AttachmentListView attachmentListView;
 
     @FXML
@@ -41,6 +46,9 @@ public class ChatController {
 
     @FXML
     private ToggleButton attachmentToggleButton;
+
+    @FXML
+    private ToggleButton uploaderToggleButton;
 
     @FXML
     private TextArea inputTextArea;
@@ -52,12 +60,14 @@ public class ChatController {
     private final ChatManager chatManager;
     private final DashscopeClient dashscope;
     private final Memory memory;
+    private final Uploader uploader;
 
     @Autowired
-    public ChatController(ChatManager chatManager, DashscopeClient dashscope, Memory memory) {
+    public ChatController(ChatManager chatManager, DashscopeClient dashscope, Memory memory, Uploader uploader) {
         this.chatManager = chatManager;
         this.dashscope = dashscope;
         this.memory = memory;
+        this.uploader = uploader;
     }
 
     @FXML
@@ -68,6 +78,8 @@ public class ChatController {
                 .bind(attachmentToggleButton.selectedProperty());
         attachmentListView.managedProperty()
                 .bind(attachmentToggleButton.selectedProperty());
+
+        initializeUploaderListView();
 
         // 发送状态切换
         enterToggleButton.selectedProperty()
@@ -163,6 +175,27 @@ public class ChatController {
                     }
 
                 });
+    }
+
+    private void initializeUploaderListView() {
+        // 绑定显示上传列表
+        uploaderListView.visibleProperty()
+                .bind(uploaderToggleButton.selectedProperty());
+        uploaderListView.managedProperty()
+                .bind(uploaderToggleButton.selectedProperty());
+        uploaderToggleButton.selectedProperty()
+                .addListener((obs, oldValue, newValue) -> {
+                    if (newValue) {
+                        uploaderListView.load();
+                    }
+                });
+
+        // 绑定显示上传列表
+        uploaderListView
+                .setOnLoadAction(uploader::listUploaded)
+                .setOnDeleteAction(entries ->
+                        entries.forEach(entry -> uploader.delete(entry.entryId())))
+                .load();
     }
 
 }

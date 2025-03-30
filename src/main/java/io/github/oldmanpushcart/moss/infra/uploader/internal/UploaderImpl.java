@@ -19,6 +19,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLConnection;
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 import static io.github.oldmanpushcart.moss.infra.uploader.internal.UploadEntryHelper.isQwenLong;
@@ -102,6 +103,14 @@ public class UploaderImpl implements Uploader {
                         );
                     }
                 });
+    }
+
+    @Override
+    public List<UploadEntry> listUploaded() {
+        return store.queryByStatus(STATUS_UPLOADED)
+                .stream()
+                .map(UploadEntryHelper::toUploadEntry)
+                .toList();
     }
 
     /*

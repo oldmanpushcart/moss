@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<fx:root prefHeight="300.0" prefWidth="1024.0" type="AnchorPane" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1">
+   <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <center>
+      
+          <TableView fx:id="uploaderTable">
+              <columns>
+                  <TableColumn fx:id="selectCol" editable="false" prefWidth="24.0" resizable="false" sortable="false" style="-fx-alignment: center_left;" />
+                  <TableColumn fx:id="mimeCol" editable="false" prefWidth="70.0" sortable="false" style="-fx-alignment: center_left;" text="类型" />
+                  <TableColumn fx:id="sizeCol" editable="false" prefWidth="70.0" resizable="false" sortable="false" style="-fx-alignment: center_left;" text="大小" />
+                  <TableColumn fx:id="modelCol" editable="false" prefWidth="70.0" resizable="false" sortable="false" style="-fx-alignment: center_left;" text="模型名称" />
+                  <TableColumn fx:id="sourceCol" editable="false" prefWidth="200.0" sortable="false" style="-fx-alignment: center_left;" text="资源地址" />
+                  <TableColumn fx:id="uploadCol" editable="false" prefWidth="200.0" sortable="false" style="-fx-alignment: center_left;" text="上传地址" />
+                  <TableColumn fx:id="expiresAtCol" editable="false" prefWidth="100.0" sortable="false" style="-fx-alignment: center_left;" text="过期时间" />
+                  <TableColumn fx:id="createdAtCol" editable="false" prefWidth="100.0" sortable="false" style="-fx-alignment: center_left;" text="创建时间" />
+                  <TableColumn fx:id="updatedAtCol" editable="false" prefWidth="100.0" sortable="false" style="-fx-alignment: center_left;" text="更新时间" />
+                  <TableColumn fx:id="optsCol" editable="false" minWidth="0.0" prefWidth="75.0" resizable="false" sortable="false" style="-fx-alignment: center_left;" text="操作" />
+              </columns>
+          </TableView>
+      </center>
+      <bottom>
+          <ToolBar nodeOrientation="RIGHT_TO_LEFT" prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+              <Button fx:id="deleteSelectedButton" mnemonicParsing="false" text="删除选中" />
+              <Button fx:id="selectAllButton" mnemonicParsing="false" text="全部选中" />
+              <Button fx:id="deselectAllButton" mnemonicParsing="false" text="取消全选" />
+              <Button fx:id="flushButton" mnemonicParsing="false" text="刷新" />
+          </ToolBar>
+      </bottom>
+   </BorderPane>
+
+</fx:root>

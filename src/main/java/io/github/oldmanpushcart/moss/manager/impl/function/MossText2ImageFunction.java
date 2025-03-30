@@ -10,6 +10,9 @@ import io.github.oldmanpushcart.dashscope4j.api.image.generation.GenImageOptions
 import io.github.oldmanpushcart.dashscope4j.api.image.generation.GenImageRequest;
 import io.github.oldmanpushcart.dashscope4j.api.image.generation.GenImageResponse;
 import io.github.oldmanpushcart.dashscope4j.task.Task;
+import io.github.oldmanpushcart.moss.infra.downloader.Downloader;
+import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -17,11 +20,14 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
+@AllArgsConstructor(onConstructor_ = @Autowired)
 @Component
 @ChatFnName("moss_t2i_fn")
 @ChatFnDescription("文生图：根据文本提示生成图片")
 public class MossText2ImageFunction
         implements ChatFunction<MossText2ImageFunction.Parameter, MossText2ImageFunction.Result> {
+
+    private final Downloader downloader;
 
     @Override
     public CompletionStage<Result> call(Caller caller, Parameter parameter) {
@@ -46,6 +52,7 @@ public class MossText2ImageFunction
                                 .filter(GenImageResponse.Item::isSuccess)
                                 .map(GenImageResponse.Item::image)
                                 .toList())
+                .thenCompose(downloader::downloads)
                 .thenApply(Result::new);
     }
 
