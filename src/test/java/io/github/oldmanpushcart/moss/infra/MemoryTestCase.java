@@ -8,8 +8,6 @@ import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.UUID;
-
 @AllArgsConstructor(onConstructor_ = @Autowired)
 public class MemoryTestCase extends SpringBootSupport {
 

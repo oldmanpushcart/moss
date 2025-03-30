@@ -1,5 +1,6 @@
 package io.github.oldmanpushcart.moss.gui.view;
 
+import io.github.oldmanpushcart.moss.gui.JsBridge;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -23,8 +24,6 @@ import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 
-import java.awt.*;
-import java.net.URI;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -99,6 +98,21 @@ public class MessageView extends AnchorPane {
 
         final var engine = contentWebView.getEngine();
 
+        engine.setJavaScriptEnabled(true);
+
+        // 加载JsBridge
+        new JsBridge(contentWebView)
+
+                /*
+                 * 监听高度变化，并自适应高度
+                 * 因为有些图片是异步加载的，加载之后会导致内容高度发生变化。
+                 * 所以此时需要监听到内容高度的变化，反向通知WebView的高度进行调整
+                 */
+                .register("onDocumentElementScrollHeightChanged", (identity, argumentJson) -> {
+                    adjustContentViewHeight();
+                    return null;
+                });
+
         /*
          * 内容页加载完毕，则标记isPageLoaded加载完成
          */
@@ -122,6 +136,7 @@ public class MessageView extends AnchorPane {
 
     }
 
+    // 绑定内容属性：修改内容，并自适应高度
     private void bindingContentProperty() {
         contentProperty
                 .addListener((obs, oldValue, newValue) -> {
@@ -147,7 +162,7 @@ public class MessageView extends AnchorPane {
                 });
     }
 
-    // 自适应高度
+    // 自适应WebView的内容高度
     private void adjustContentViewHeight() {
         final var engine = contentWebView.getEngine();
         executeScriptSafely(() -> {

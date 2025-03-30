@@ -16,6 +16,8 @@ open module moss {
     requires javafx.fxml;
     requires javafx.web;
     requires javafx.controls;
+    requires java.desktop;
+    requires jdk.jsobject;
 
     requires org.commonmark;
     requires org.commonmark.ext.gfm.tables;
@@ -28,6 +30,5 @@ open module moss {
     requires org.apache.commons.text;
     requires org.apache.commons.lang3;
     requires com.fasterxml.jackson.databind;
-    requires java.desktop;
 
 }

@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static io.github.oldmanpushcart.moss.util.ExceptionUtils.resolveRootCause;
 import static io.github.oldmanpushcart.moss.util.ExceptionUtils.stackTraceToString;
 import static javafx.application.Platform.isFxApplicationThread;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 @AllArgsConstructor
 class OnEnterEventHandler implements EventHandler<ActionEvent> {
@@ -126,7 +127,11 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                         .subscribe(
 
                                 // 流过程
-                                text -> Platform.runLater(() -> responseMessageView.setContent(stringBuf.append(text))),
+                                text -> Platform.runLater(() -> {
+                                    if (isNotEmpty(text)) {
+                                        responseMessageView.setContent(stringBuf.append(text));
+                                    }
+                                }),
 
                                 // 流错误
                                 ex -> {

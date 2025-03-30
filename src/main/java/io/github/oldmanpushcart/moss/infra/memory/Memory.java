@@ -1,7 +1,5 @@
 package io.github.oldmanpushcart.moss.infra.memory;
 
-import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
-
 import java.util.List;
 
 /**

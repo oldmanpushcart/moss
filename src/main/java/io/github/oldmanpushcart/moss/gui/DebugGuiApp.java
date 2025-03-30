@@ -2,7 +2,6 @@ package io.github.oldmanpushcart.moss.gui;
 
 import io.github.oldmanpushcart.moss.gui.view.MessageView;
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 

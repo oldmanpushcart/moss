@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.Objects;
 
 /**
  * 上传条目数据实体
@@ -98,7 +99,8 @@ public class UploadEntryDO {
      * @return TRUE | FALSE
      */
     public boolean isExpired() {
-        return expiresAt.isBefore(Instant.now());
+        return Objects.nonNull(expiresAt)
+               && expiresAt.isBefore(Instant.now());
     }
 
 }

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import io.github.oldmanpushcart.moss.gui.view.AttachmentListView?>
+<?import io.github.oldmanpushcart.moss.gui.view.UploaderListView?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import io.github.oldmanpushcart.moss.gui.view.UploaderListView?>
 <AnchorPane prefHeight="800.0" prefWidth="600.0"
             xmlns="http://javafx.com/javafx/17.0.12"
             xmlns:fx="http://javafx.com/fxml/1"

@@ -25,7 +25,7 @@ moss:
     memory:
       max-tokens: 100000
       max-count: 1000
-      duration: 1h
+      duration: 6h
     downloader:
       location: ./data/downloads
     uploader:
