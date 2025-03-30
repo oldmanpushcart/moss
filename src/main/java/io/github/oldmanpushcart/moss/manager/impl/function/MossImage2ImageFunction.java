@@ -59,7 +59,7 @@ public class MossImage2ImageFunction
                             .thenCompose(half ->
                                     half.waitingFor(Task.WaitStrategies.until(
                                             Duration.ofSeconds(1),
-                                            Duration.ofMinutes(1)
+                                            Duration.ofMinutes(5)
                                     )))
                             .thenApply(response ->
                                     response.output().results().stream()

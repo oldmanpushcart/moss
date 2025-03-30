@@ -1,6 +1,7 @@
 package io.github.oldmanpushcart.moss.gui.view;
 
 import io.github.oldmanpushcart.moss.gui.JsBridge;
+import io.github.oldmanpushcart.moss.infra.commonmark.extension.VideoLinkHtmlExtension;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -19,11 +20,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.web.WebView;
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import org.commonmark.Extension;
 import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 
+import java.io.File;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -34,12 +35,16 @@ public class MessageView extends AnchorPane {
 
     private static final String PAGE = "/gui/statics/html/message-view-index.html";
 
-    private static final List<Extension> extensions = List.of(TablesExtension.create());
     private static final Parser markdownParser = Parser.builder()
-            .extensions(extensions)
+            .extensions(List.of(
+                    TablesExtension.create()
+            ))
             .build();
     private static final HtmlRenderer htmlRenderer = HtmlRenderer.builder()
-            .extensions(extensions)
+            .extensions(List.of(
+                    TablesExtension.create(),
+                    VideoLinkHtmlExtension.create()
+            ))
             .build();
 
     private final AtomicBoolean isPageLoaded = new AtomicBoolean(false);
