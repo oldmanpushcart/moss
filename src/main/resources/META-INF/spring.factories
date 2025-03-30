@@ -1,1 +1,3 @@
-org.springframework.boot.env.EnvironmentPostProcessor=io.github.oldmanpushcart.moss.infra.ibatis.SqliteVecLibPathEnvPostProcessor
+
+# 暂不开启RAG，此处先关闭
+# org.springframework.boot.env.EnvironmentPostProcessor=io.github.oldmanpushcart.moss.infra.ibatis.SqliteVecLibPathEnvPostProcessor

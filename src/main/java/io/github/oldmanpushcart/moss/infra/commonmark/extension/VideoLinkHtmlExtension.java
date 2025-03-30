@@ -10,8 +10,8 @@ import org.commonmark.renderer.html.HtmlNodeRendererContext;
 import org.commonmark.renderer.html.HtmlNodeRendererFactory;
 import org.commonmark.renderer.html.HtmlRenderer;
 
+import java.net.URI;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 public class VideoLinkHtmlExtension implements HtmlRenderer.HtmlRendererExtension {
@@ -27,8 +27,9 @@ public class VideoLinkHtmlExtension implements HtmlRenderer.HtmlRendererExtensio
 
                     @Override
                     public void visit(Link link) {
-                        if (VIDEO_PATTERN.matcher(link.getDestination()).matches()) {
-                            visitVideo(link.getDestination());
+                        final var resource = URI.create(link.getDestination());
+                        if (VIDEO_PATTERN.matcher(resource.getPath()).matches()) {
+                            visitVideo(resource);
                         } else {
                             super.visit(link);
                         }
@@ -36,22 +37,42 @@ public class VideoLinkHtmlExtension implements HtmlRenderer.HtmlRendererExtensio
 
                     @Override
                     public void visit(Image image) {
-                        if (VIDEO_PATTERN.matcher(image.getDestination()).matches()) {
-                            visitVideo(image.getDestination());
+                        final var resource = URI.create(image.getDestination());
+                        if (VIDEO_PATTERN.matcher(resource.getPath()).matches()) {
+                            visitVideo(resource);
                         } else {
                             super.visit(image);
                         }
                     }
 
-                    private void visitVideo(String destination) {
+                    private void visitVideo(URI resource) {
                         final var html = context.getWriter();
                         html.tag("video", new HashMap<>() {{
                             put("controls", null);
                             put("style", "width: 100%; height: auto;");
                         }});
-                        html.tag("source", Map.of("src", destination));
+                        html.tag("source", new HashMap<>() {{
+                            put("src", resource.toString());
+                            final var type = parseType(resource);
+                            if (null != type) {
+                                put("type", "video/mp4");
+                            }
+                        }});
                         html.text("Your browser does not support the video tag.");
                         html.tag("/video");
+                    }
+
+                    // 解析视频类型
+                    private String parseType(URI resource) {
+                        final var suffix = resource.getPath()
+                                .substring(resource.getPath().lastIndexOf(".") + 1)
+                                .toLowerCase();
+                        return switch (suffix) {
+                            case "mp4" -> "video/mp4";
+                            case "webm" -> "video/webm";
+                            case "ogg" -> "video/ogg";
+                            default -> null;
+                        };
                     }
 
                 };

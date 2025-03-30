@@ -8,6 +8,7 @@
     <script type='text/javascript' src='https://cdn.jsdelivr.net/npm/firebug-lite-ie@1.5.3/build/firebug-lite-debug.min.js#startOpened=1'></script>
     -->
     <script type='text/javascript' src="../js/js-bridge.js"></script>
+
 </head>
 <body style="overflow: hidden; word-wrap: break-word; word-break: break-all; white-space: normal;">
 <article id="message-content" class="markdown-body" style="font-size: 0.8em; margin: 0; padding: 0;">
@@ -18,18 +19,15 @@
     // 设置 MutationObserver 监听页面高度变化
     function setupDocumentElementScrollHeightChangeObserver() {
 
-        // 监听DOM的高度变化并通知给原生端
-        const observer = new MutationObserver(() => {
+        // 使用 ResizeObserver 监听文档高度的变化
+        const resizeObserver = new ResizeObserver(() => {
             const newHeight = document.documentElement.scrollHeight;
             JsBridge.call("onDocumentElementScrollHeightChanged", newHeight)
                 .catch(error => console.error("Error notifying height change:", error));
         });
 
-        // 开始监听整个文档的变化
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
+        // 开始监听整个文档的高度变化
+        resizeObserver.observe(document.documentElement);
 
     }
 
