@@ -1,8 +1,7 @@
-package io.github.oldmanpushcart.moss.manager.impl.function;
+package io.github.oldmanpushcart.moss.manager.impl.function.dashscope;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFnDescription;
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFnName;
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFunction;
@@ -21,10 +20,10 @@ import java.util.concurrent.CompletionStage;
 
 @AllArgsConstructor(onConstructor_ = @Autowired)
 @Component
-@ChatFnName("moss_t2v_fn")
+@ChatFnName("dashscope@text2video_fn")
 @ChatFnDescription("文生视频：根据文本提示生成视频")
-public class MossText2VideoFunction
-        implements ChatFunction<MossText2VideoFunction.Parameter, MossText2VideoFunction.Result> {
+public class DashscopeText2VideoFunction
+        implements ChatFunction<DashscopeText2VideoFunction.Parameter, DashscopeText2VideoFunction.Result> {
 
     private final Downloader downloader;
 

@@ -122,11 +122,17 @@ public class ChatManagerImpl implements ChatManager {
                 .addMessage(Message.ofSystem("""
                         你是一个智能函数路由助手，负责根据用户的输入上下文选择最合适的函数进行调用。逐行仅返回函数名称列表。
                         函数列表：
+                        
                         %s
                         """.formatted(
                         tools.stream()
                                 .map(ChatFunctionTool::meta)
-                                .map(meta -> "%s: %s".formatted(meta.name(), meta.description()))
+                                .map(meta -> """
+                                ## %s
+                                %s
+                                
+                                
+                                """.formatted(meta.name(), meta.description()))
                                 .reduce((first, second) -> first + "\n" + second)
                                 .orElse("")
                 )))

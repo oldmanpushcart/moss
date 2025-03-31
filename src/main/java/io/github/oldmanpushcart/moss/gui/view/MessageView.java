@@ -24,7 +24,6 @@ import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 
-import java.io.File;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 

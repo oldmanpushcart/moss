@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.manager.impl.function;
+package io.github.oldmanpushcart.moss.manager.impl.function.dashscope;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
@@ -23,30 +23,29 @@ import java.util.concurrent.CompletionStage;
 
 @AllArgsConstructor(onConstructor_ = @Autowired)
 @Component
-@ChatFnName("moss_chat_long_fn")
-@ChatFnDescription("文档识别：按照提示要求对文档进行识别")
-public class MossChatLongFunction
-        implements ChatFunction<MossChatLongFunction.Parameter, MossChatLongFunction.Result> {
+@ChatFnName("dashscope@chat_vision_fn")
+@ChatFnDescription("图片、视频理解：可根据提示词要求对话中有关图片、视频进行理解")
+public class DashscopeChatVisionFunction
+        implements ChatFunction<DashscopeChatVisionFunction.Parameter, DashscopeChatVisionFunction.Result> {
 
     private final Uploader uploader;
 
     @Override
     public CompletionStage<Result> call(Caller caller, Parameter parameter) {
         return CompletableFuture.completedStage(null)
-                .thenCompose(unused -> upload(parameter.documentURIs()))
+                .thenCompose(unused -> upload(parameter.imageURIs()))
                 .thenCompose(resourceUploads -> {
                     final var contents = new ArrayList<Content<?>>() {{
                         add(Content.ofText(parameter.prompt()));
                         addAll(resourceUploads);
                     }};
                     final var request = ChatRequest.newBuilder()
-                            .model(ChatModel.QWEN_LONG)
+                            .model(ChatModel.QWEN_VL_PLUS)
                             .addMessage(Message.ofUser(contents))
                             .option(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true)
                             .build();
-
                     return caller.client().chat().directFlow(request)
-                            .reduce(new StringBuilder(), (stringBuf, response) -> {
+                            .reduce(new StringBuilder(), (stringBuf, response)-> {
                                 stringBuf.append(response.output().best().message().text());
                                 return stringBuf;
                             })
@@ -60,9 +59,9 @@ public class MossChatLongFunction
         CompletionStage<List<Content<URI>>> stage = CompletableFuture.completedStage(new ArrayList<>());
         for (URI resource : resources) {
             stage = stage.thenCompose(list ->
-                    uploader.upload(ChatModel.QWEN_LONG, resource)
+                    uploader.upload(ChatModel.QWEN_VL_PLUS, resource)
                             .thenApply(entry -> {
-                                final var content = Content.ofFile(entry.upload());
+                                final var content = Content.ofImage(entry.upload());
                                 list.add(content);
                                 return list;
                             }));
@@ -76,9 +75,9 @@ public class MossChatLongFunction
             @JsonProperty(required = true)
             String prompt,
 
-            @JsonPropertyDescription("文档URI列表")
+            @JsonPropertyDescription("图片URI列表")
             @JsonProperty(required = true)
-            List<URI> documentURIs
+            List<URI> imageURIs
 
     ) {
 

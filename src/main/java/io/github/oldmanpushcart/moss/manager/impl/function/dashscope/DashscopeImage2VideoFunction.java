@@ -1,13 +1,14 @@
-package io.github.oldmanpushcart.moss.manager.impl.function;
+package io.github.oldmanpushcart.moss.manager.impl.function.dashscope;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFnDescription;
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFnName;
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFunction;
 import io.github.oldmanpushcart.dashscope4j.api.image.generation.GenImageModel;
-import io.github.oldmanpushcart.dashscope4j.api.video.generation.*;
+import io.github.oldmanpushcart.dashscope4j.api.video.generation.ImageGenVideoModel;
+import io.github.oldmanpushcart.dashscope4j.api.video.generation.ImageGenVideoOptions;
+import io.github.oldmanpushcart.dashscope4j.api.video.generation.ImageGenVideoRequest;
 import io.github.oldmanpushcart.dashscope4j.task.Task;
 import io.github.oldmanpushcart.moss.infra.downloader.Downloader;
 import io.github.oldmanpushcart.moss.infra.uploader.UploadEntry;
@@ -23,10 +24,10 @@ import java.util.concurrent.CompletionStage;
 
 @AllArgsConstructor(onConstructor_ = @Autowired)
 @Component
-@ChatFnName("moss_i2v_fn")
+@ChatFnName("dashscope@image2video_fn")
 @ChatFnDescription("图生视频：根据参考图片和文本提示生成视频")
-public class MossImage2VideoFunction
-        implements ChatFunction<MossImage2VideoFunction.Parameter, MossImage2VideoFunction.Result> {
+public class DashscopeImage2VideoFunction
+        implements ChatFunction<DashscopeImage2VideoFunction.Parameter, DashscopeImage2VideoFunction.Result> {
 
     private final Uploader uploader;
     private final Downloader downloader;

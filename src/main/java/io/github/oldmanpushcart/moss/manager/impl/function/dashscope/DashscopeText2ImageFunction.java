@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.manager.impl.function;
+package io.github.oldmanpushcart.moss.manager.impl.function.dashscope;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
@@ -22,10 +22,10 @@ import java.util.concurrent.CompletionStage;
 
 @AllArgsConstructor(onConstructor_ = @Autowired)
 @Component
-@ChatFnName("moss_t2i_fn")
+@ChatFnName("dashscope@text2image_fn")
 @ChatFnDescription("文生图：根据文本提示生成图片")
-public class MossText2ImageFunction
-        implements ChatFunction<MossText2ImageFunction.Parameter, MossText2ImageFunction.Result> {
+public class DashscopeText2ImageFunction
+        implements ChatFunction<DashscopeText2ImageFunction.Parameter, DashscopeText2ImageFunction.Result> {
 
     private final Downloader downloader;
 
