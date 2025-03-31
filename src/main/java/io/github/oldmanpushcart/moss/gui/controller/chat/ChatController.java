@@ -133,7 +133,8 @@ public class ChatController {
             messagesBox.getChildren()
                     .add(new MessageView() {{
                         setContent(fragment.responseMessage().text());
-                        setButtonBarEnabled(false);
+                        setButtonBarEnabled(true);
+                        setRedoButtonEnabled(false);
                     }});
 
         });

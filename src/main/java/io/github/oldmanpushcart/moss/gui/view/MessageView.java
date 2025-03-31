@@ -57,6 +57,10 @@ public class MessageView extends AnchorPane {
     @Accessors(fluent = true)
     private final BooleanProperty buttonBarEnabledProperty = new SimpleBooleanProperty(this, "ButtonBar Enabled", true);
 
+    @Getter
+    @Accessors(fluent = true)
+    private final BooleanProperty redoButtonEnabledProperty = new SimpleBooleanProperty(this, "Redo Button Enabled", true);
+
     @FXML
     private WebView contentWebView;
 
@@ -96,6 +100,7 @@ public class MessageView extends AnchorPane {
         bindingContentProperty();
         bindingCopyButtonOnAction();
         bindingEnableButtonBarProperty();
+        bindingEnableRedoButtonProperty();
         initializeContentWebView();
     }
 
@@ -182,6 +187,12 @@ public class MessageView extends AnchorPane {
         buttonBar.managedProperty().bind(buttonBarEnabledProperty);
     }
 
+    // 绑定重做按钮：显示/隐藏
+    private void bindingEnableRedoButtonProperty() {
+        redoButton.visibleProperty().bind(redoButtonEnabledProperty);
+        redoButton.managedProperty().bind(redoButtonEnabledProperty);
+    }
+
     // 绑定复制按钮：复制到剪贴板
     private void bindingCopyButtonOnAction() {
         copyButton.setOnAction(event -> {
@@ -227,6 +238,14 @@ public class MessageView extends AnchorPane {
 
     public void setButtonBarEnabled(boolean enable) {
         buttonBarEnabledProperty.set(enable);
+    }
+
+    public boolean isRedoButtonEnabled() {
+        return redoButtonEnabledProperty.get();
+    }
+
+    public void setRedoButtonEnabled(boolean enable) {
+        redoButtonEnabledProperty.set(enable);
     }
 
 }
