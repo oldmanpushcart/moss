@@ -127,11 +127,14 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                         .subscribe(
 
                                 // 流过程
-                                text -> Platform.runLater(() -> {
-                                    if (isNotEmpty(text)) {
-                                        responseMessageView.setContent(stringBuf.append(text));
-                                    }
-                                }),
+                                text -> {
+                                    stringBuf.append(text);
+                                    Platform.runLater(() -> {
+                                        if (isNotEmpty(text)) {
+                                            responseMessageView.setContent(stringBuf);
+                                        }
+                                    });
+                                },
 
                                 // 流错误
                                 ex -> {
