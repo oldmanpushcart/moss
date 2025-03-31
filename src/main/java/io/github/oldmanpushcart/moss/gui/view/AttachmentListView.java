@@ -74,6 +74,7 @@ public class AttachmentListView extends AnchorPane {
         });
 
         // 路径列
+        pathCol.setCellFactory(col -> new TooltipStringTableCell<>());
         pathCol.setCellValueFactory(data -> {
             final var item = data.getValue();
             final var file = item.file();
@@ -81,6 +82,7 @@ public class AttachmentListView extends AnchorPane {
         });
 
         // 大小列
+        sizeCol.setCellFactory(col -> new TooltipStringTableCell<>());
         sizeCol.setCellValueFactory(data -> {
             final var item = data.getValue();
             final var file = item.file();
@@ -194,6 +196,7 @@ public class AttachmentListView extends AnchorPane {
                     getChildren().addAll(
                             new Hyperlink() {{
                                 setText("删除");
+                                setStyle("-fx-text-fill: #E34234; -fx-font-weight: bold;");
                                 setOnAction(event -> attachmentTable.getItems().remove(Item.this));
                             }}
                     );

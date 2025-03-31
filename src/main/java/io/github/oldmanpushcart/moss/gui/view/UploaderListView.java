@@ -173,34 +173,40 @@ public class UploaderListView extends AnchorPane {
             return item.checkBoxProperty();
         });
 
+        mimeCol.setCellFactory(col -> new TooltipStringTableCell<>());
         mimeCol.setCellValueFactory(data -> {
             final var item = data.getValue();
             return new SimpleStringProperty(item.entry().mime());
         });
 
+        sizeCol.setCellFactory(col -> new TooltipStringTableCell<>());
         sizeCol.setCellValueFactory(data -> {
             final var item = data.getValue();
             return new SimpleStringProperty(byteCountToDisplaySize(item.entry().length()));
         });
 
+        modelCol.setCellFactory(col -> new TooltipStringTableCell<>());
         modelCol.setCellValueFactory(data -> {
             final var item = data.getValue();
             return new SimpleStringProperty(item.entry().model());
         });
 
+        sourceCol.setCellFactory(col -> new TooltipStringTableCell<>());
         sourceCol.setCellValueFactory(data -> {
             final var item = data.getValue();
             return new SimpleStringProperty(String.valueOf(item.entry().source()));
         });
 
+        uploadCol.setCellFactory(col -> new TooltipStringTableCell<>());
         uploadCol.setCellValueFactory(data -> {
             final var item = data.getValue();
             return new SimpleStringProperty(String.valueOf(item.entry().upload()));
         });
 
+        expiresAtCol.setCellFactory(col -> new TooltipStringTableCell<>());
         expiresAtCol.setCellValueFactory(data -> {
             final var item = data.getValue();
-            if(null != item.entry().expiresAt()) {
+            if (null != item.entry().expiresAt()) {
                 final var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                         .withZone(ZoneId.systemDefault());
                 return new SimpleStringProperty(formatter.format(item.entry().expiresAt()));
@@ -209,6 +215,7 @@ public class UploaderListView extends AnchorPane {
             }
         });
 
+        createdAtCol.setCellFactory(col -> new TooltipStringTableCell<>());
         createdAtCol.setCellValueFactory(data -> {
             final var item = data.getValue();
             final var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -216,6 +223,7 @@ public class UploaderListView extends AnchorPane {
             return new SimpleStringProperty(formatter.format(item.entry().createdAt()));
         });
 
+        updatedAtCol.setCellFactory(col -> new TooltipStringTableCell<>());
         updatedAtCol.setCellValueFactory(data -> {
             final var item = data.getValue();
             final var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -251,6 +259,7 @@ public class UploaderListView extends AnchorPane {
                     getChildren().addAll(
                             new Hyperlink() {{
                                 setText("删除");
+                                setStyle("-fx-text-fill: #E34234; -fx-font-weight: bold;");
                                 setOnAction(event -> {
                                     if (deleteAction != null) {
                                         deleteAction.accept(List.of(Item.this.entry));
