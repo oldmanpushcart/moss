@@ -28,7 +28,6 @@ open module moss {
     requires jakarta.annotation;
     requires org.apache.commons.io;
     requires org.apache.commons.text;
-    requires org.apache.commons.lang3;
     requires com.fasterxml.jackson.databind;
 
 }

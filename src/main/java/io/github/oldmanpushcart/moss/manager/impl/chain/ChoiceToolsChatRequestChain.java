@@ -11,7 +11,6 @@ import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFunctionT
 import io.github.oldmanpushcart.moss.util.CommonUtils;
 import io.github.oldmanpushcart.moss.util.JacksonUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -92,7 +91,7 @@ public class ChoiceToolsChatRequestChain implements ChatRequestChain {
                     final var responseText = choiceToolsResponse.output().best().message().text();
                     final var fuNameArray = JacksonUtils.toObject(responseText, String[].class);
                     final var fnNameSet = Stream.of(fuNameArray)
-                            .filter(StringUtils::isNotBlank)
+                            .filter(fnName -> null != fnName && !fnName.isBlank())
                             .map(String::trim)
                             .collect(Collectors.toUnmodifiableSet());
                     return tools.stream()

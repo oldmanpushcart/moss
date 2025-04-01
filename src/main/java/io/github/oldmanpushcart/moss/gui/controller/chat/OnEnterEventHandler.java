@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static io.github.oldmanpushcart.moss.util.ExceptionUtils.resolveRootCause;
 import static io.github.oldmanpushcart.moss.util.ExceptionUtils.stackTraceToString;
 import static javafx.application.Platform.isFxApplicationThread;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 @AllArgsConstructor
 class OnEnterEventHandler implements EventHandler<ActionEvent> {
@@ -157,7 +156,7 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
     private void renderingResponseMessageViewOnNext(MessageView responseMessageView, StringBuilder stringBuf, String text) {
         stringBuf.append(text);
         Platform.runLater(() -> {
-            if (isNotEmpty(text)) {
+            if (null != text && !text.isEmpty()) {
                 responseMessageView.setContent(stringBuf);
             }
         });

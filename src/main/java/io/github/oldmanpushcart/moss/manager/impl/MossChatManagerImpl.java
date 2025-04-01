@@ -3,7 +3,6 @@ package io.github.oldmanpushcart.moss.manager.impl;
 import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.dashscope4j.api.chat.*;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
-import io.github.oldmanpushcart.moss.infra.memory.MemoryFragment;
 import io.github.oldmanpushcart.moss.manager.MossChatContext;
 import io.github.oldmanpushcart.moss.manager.MossChatManager;
 import io.github.oldmanpushcart.moss.manager.impl.chain.ChoiceToolsChatRequestChain;
@@ -16,9 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 import static io.github.oldmanpushcart.moss.util.FileUtils.probeContentType;
