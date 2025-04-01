@@ -6,7 +6,7 @@ import io.github.oldmanpushcart.moss.gui.view.MessageView;
 import io.github.oldmanpushcart.moss.gui.view.UploaderListView;
 import io.github.oldmanpushcart.moss.infra.memory.Memory;
 import io.github.oldmanpushcart.moss.infra.uploader.Uploader;
-import io.github.oldmanpushcart.moss.manager.ChatManager;
+import io.github.oldmanpushcart.moss.manager.MossChatManager;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -57,14 +57,14 @@ public class ChatController {
     private ToggleButton enterToggleButton;
 
     private final AtomicBoolean autoScrollToBottomRef = new AtomicBoolean(true);
-    private final ChatManager chatManager;
+    private final MossChatManager mossChatManager;
     private final DashscopeClient dashscope;
     private final Memory memory;
     private final Uploader uploader;
 
     @Autowired
-    public ChatController(ChatManager chatManager, DashscopeClient dashscope, Memory memory, Uploader uploader) {
-        this.chatManager = chatManager;
+    public ChatController(MossChatManager mossChatManager, DashscopeClient dashscope, Memory memory, Uploader uploader) {
+        this.mossChatManager = mossChatManager;
         this.dashscope = dashscope;
         this.memory = memory;
         this.uploader = uploader;
@@ -105,7 +105,7 @@ public class ChatController {
                         attachmentListView,
                         enterToggleButton,
                         autoScrollToBottomRef,
-                        chatManager,
+                        mossChatManager,
                         dashscope,
                         memory
                 ));

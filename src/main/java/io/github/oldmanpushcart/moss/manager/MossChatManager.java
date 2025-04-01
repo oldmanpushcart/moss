@@ -8,8 +8,8 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
-public interface ChatManager {
+public interface MossChatManager {
 
-    CompletionStage<Flowable<ChatResponse>> chat(MemoryFragment fragment, List<File> attachments);
+    CompletionStage<Flowable<ChatResponse>> chat(MossChatContext context);
 
 }

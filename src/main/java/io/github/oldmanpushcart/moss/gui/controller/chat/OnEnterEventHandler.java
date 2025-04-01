@@ -6,7 +6,8 @@ import io.github.oldmanpushcart.moss.gui.view.AttachmentListView;
 import io.github.oldmanpushcart.moss.gui.view.MessageView;
 import io.github.oldmanpushcart.moss.infra.memory.Memory;
 import io.github.oldmanpushcart.moss.infra.memory.MemoryFragment;
-import io.github.oldmanpushcart.moss.manager.ChatManager;
+import io.github.oldmanpushcart.moss.manager.MossChatContext;
+import io.github.oldmanpushcart.moss.manager.MossChatManager;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -34,7 +35,7 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
     private final ToggleButton enterToggleButton;
     private final AtomicBoolean autoScrollToBottomRef;
 
-    private final ChatManager chatManager;
+    private final MossChatManager mossChatManager;
     private final DashscopeClient dashscope;
     private final Memory memory;
     private final CompositeDisposableControl chatControl = new CompositeDisposableControl();
@@ -106,7 +107,13 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
 
         final var stringBuf = new StringBuilder();
         final var referenceBuf = new StringBuilder();
-        chatManager.chat(fragment, attachments)
+
+        final var context = MossChatContext.newBuilder()
+                .fragment(fragment)
+                .attachments(attachments)
+                .build();
+
+        mossChatManager.chat(context)
                 .thenAccept(responseFlow -> responseFlow
 
                         // 构建引用
