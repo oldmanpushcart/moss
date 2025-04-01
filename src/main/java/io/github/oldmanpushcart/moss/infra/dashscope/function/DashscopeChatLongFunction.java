@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.manager.impl.function.dashscope;
+package io.github.oldmanpushcart.moss.infra.dashscope.function;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
@@ -23,7 +23,7 @@ import java.util.concurrent.CompletionStage;
 
 @AllArgsConstructor(onConstructor_ = @Autowired)
 @Component
-@ChatFnName("dashscope@chat_long_fn")
+@ChatFnName("dashscope_chat_long")
 @ChatFnDescription("文档识别：按照提示要求对文档进行识别")
 public class DashscopeChatLongFunction
         implements ChatFunction<DashscopeChatLongFunction.Parameter, DashscopeChatLongFunction.Result> {

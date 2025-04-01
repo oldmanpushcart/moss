@@ -9,7 +9,7 @@ import static io.github.oldmanpushcart.moss.util.CommonUtils.acceptIfNonNull;
 @Configuration
 public class DashscopeConfiguration {
 
-    @Bean
+    @Bean(destroyMethod = "shutdown")
     public DashscopeClient dashscope(DashscopeConfig config) {
         return DashscopeClient.newBuilder()
                 .ak(config.getApiKey())

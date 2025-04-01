@@ -28,4 +28,20 @@ public class JacksonUtils {
         }
     }
 
+    /**
+     * {@code json -> T}
+     *
+     * @param json json
+     * @param type 对象类型
+     * @param <T>  对象类型
+     * @return 目标对象
+     */
+    public static <T> T toObject(String json, Class<T> type) {
+        try {
+            return mapper.readValue(json, type);
+        } catch (JsonProcessingException cause) {
+            throw new IllegalArgumentException("parse json to object failed!", cause);
+        }
+    }
+
 }

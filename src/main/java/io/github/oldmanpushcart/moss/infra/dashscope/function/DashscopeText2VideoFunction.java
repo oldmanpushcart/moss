@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.manager.impl.function.dashscope;
+package io.github.oldmanpushcart.moss.infra.dashscope.function;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
@@ -20,7 +20,7 @@ import java.util.concurrent.CompletionStage;
 
 @AllArgsConstructor(onConstructor_ = @Autowired)
 @Component
-@ChatFnName("dashscope@text2video_fn")
+@ChatFnName("dashscope_text2video")
 @ChatFnDescription("文生视频：根据文本提示生成视频")
 public class DashscopeText2VideoFunction
         implements ChatFunction<DashscopeText2VideoFunction.Parameter, DashscopeText2VideoFunction.Result> {

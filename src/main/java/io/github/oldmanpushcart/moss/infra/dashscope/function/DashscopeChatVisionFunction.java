@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.manager.impl.function.dashscope;
+package io.github.oldmanpushcart.moss.infra.dashscope.function;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
@@ -23,7 +23,7 @@ import java.util.concurrent.CompletionStage;
 
 @AllArgsConstructor(onConstructor_ = @Autowired)
 @Component
-@ChatFnName("dashscope@chat_vision_fn")
+@ChatFnName("dashscope_chat_vision")
 @ChatFnDescription("图片、视频理解：可根据提示词要求对话中有关图片、视频进行理解")
 public class DashscopeChatVisionFunction
         implements ChatFunction<DashscopeChatVisionFunction.Parameter, DashscopeChatVisionFunction.Result> {

@@ -11,6 +11,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.event.ApplicationStartingEvent;
@@ -21,6 +22,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
+@Slf4j
 public class MossGuiApplication extends Application {
 
     private static final Image ICON_IMAGE = new Image(Objects.requireNonNull(MossGuiApplication.class.getResourceAsStream("/gui/statics/image/moss-icon.png")));
@@ -29,7 +31,15 @@ public class MossGuiApplication extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         displaySplashStage()
-                .thenCompose(unused -> displayMainStage(primaryStage));
+                .thenCompose(unused -> displayMainStage(primaryStage))
+                .whenComplete((v,ex)-> {
+                    if(null != ex) {
+                        log.error("moss://startup failed!", ex);
+                        Platform.exit();
+                    } else {
+                        log.debug("moss://startup completed!");
+                    }
+                });
     }
 
     // 显示启动窗口

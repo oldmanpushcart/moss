@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.manager.impl.function.dashscope;
+package io.github.oldmanpushcart.moss.infra.dashscope.function;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
@@ -22,7 +22,7 @@ import java.util.concurrent.CompletionStage;
 
 @AllArgsConstructor(onConstructor_ = @Autowired)
 @Component
-@ChatFnName("dashscope@text2image_fn")
+@ChatFnName("dashscope_text2image")
 @ChatFnDescription("文生图：根据文本提示生成图片")
 public class DashscopeText2ImageFunction
         implements ChatFunction<DashscopeText2ImageFunction.Parameter, DashscopeText2ImageFunction.Result> {
