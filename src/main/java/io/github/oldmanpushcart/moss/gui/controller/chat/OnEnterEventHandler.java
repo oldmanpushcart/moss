@@ -105,18 +105,19 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                 : Collections.<File>emptyList();
 
         final var stringBuf = new StringBuilder();
-        final var referenceDisplayBuf = new StringBuilder();
+        final var referenceBuf = new StringBuilder();
         chatManager.chat(fragment, attachments)
                 .thenAccept(responseFlow -> responseFlow
 
                         // 构建引用
                         .doOnNext(response -> {
-                            if (referenceDisplayBuf.isEmpty() && !response.output().search().results().isEmpty()) {
-                                referenceDisplayBuf.append("> ##### 参考资料\n");
+                            if (referenceBuf.isEmpty() && !response.output().search().results().isEmpty()) {
+                                referenceBuf.append("> ##### 参考资料\n");
                                 response.output().search().results()
-                                        .forEach(result -> {
-                                            referenceDisplayBuf.append("> - [%s](%s)\n".formatted(result.title(), result.site()));
-                                        });
+                                        .forEach(result -> referenceBuf.append("> - [%s](%s)\n".formatted(
+                                                result.title(),
+                                                result.site()
+                                        )));
                             }
                         })
 
@@ -125,58 +126,74 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
 
                         // 开始订阅
                         .subscribe(
-
-                                // 流过程
-                                text -> {
-                                    stringBuf.append(text);
-                                    Platform.runLater(() -> {
-                                        if (isNotEmpty(text)) {
-                                            responseMessageView.setContent(stringBuf);
-                                        }
-                                    });
-                                },
-
-                                // 流错误
-                                ex -> {
-                                    final var rootEx = resolveRootCause(ex);
-                                    final var content = """
-                                            %s
-                                            > ERROR %s
-                                            ```java
-                                            %s
-                                            ```
-                                            """.formatted(
-                                            stringBuf,
-                                            rootEx.getMessage(),
-                                            stackTraceToString(rootEx)
-                                    );
-                                    Platform.runLater(() -> {
-                                        responseMessageView.setContent(content);
-                                        responseMessageView.setButtonBarEnabled(true);
-                                    });
-                                },
-
-                                // 流结束
+                                text -> renderingResponseMessageViewOnNext(responseMessageView, stringBuf, text),
+                                ex -> renderingResponseMessageViewOnError(responseMessageView, source, stringBuf, ex),
                                 () -> {
 
-                                    final var responseDisplayBuf = new StringBuilder()
-                                            .append(stringBuf)
-                                            .append("\n\n")
-                                            .append(referenceDisplayBuf);
-
+                                    // 保存记忆片段
                                     fragment.responseMessage(Message.ofAi(stringBuf.toString()));
                                     memory.saveOrUpdate(fragment);
-                                    Platform.runLater(() -> {
-                                        responseMessageView.setContent(responseDisplayBuf);
-                                        responseMessageView.setButtonBarEnabled(true);
-                                        if (source == enterToggleButton) {
-                                            enterToggleButton.setSelected(false);
-                                        }
-                                    });
-                                },
 
+                                    // 渲染应答消息视图
+                                    renderingResponseMessageViewOnFinish(responseMessageView, source, stringBuf, referenceBuf);
+
+                                },
                                 dispose
-                        ));
+                        ))
+                .whenComplete((v, ex) -> {
+                    if (null != ex) {
+                        renderingResponseMessageViewOnError(responseMessageView, source, stringBuf, ex);
+                    }
+                });
+    }
+
+    private void renderingResponseMessageViewOnNext(MessageView responseMessageView, StringBuilder stringBuf, String text) {
+        stringBuf.append(text);
+        Platform.runLater(() -> {
+            if (isNotEmpty(text)) {
+                responseMessageView.setContent(stringBuf);
+            }
+        });
+    }
+
+    private void renderingResponseMessageViewOnFinish(MessageView responseMessageView, Object source, StringBuilder stringBuf, StringBuilder referenceBuf) {
+        final var displayBuf = new StringBuilder()
+                .append(stringBuf)
+                .append("\n\n")
+                .append(referenceBuf);
+        Platform.runLater(() -> {
+            responseMessageView.setContent(displayBuf);
+            responseMessageView.setButtonBarEnabled(true);
+            if (source == enterToggleButton) {
+                enterToggleButton.setSelected(false);
+            }
+        });
+    }
+
+    private void renderingResponseMessageViewOnError(MessageView responseMessageView, Object source, StringBuilder stringBuf, Throwable ex) {
+        final var rootEx = resolveRootCause(ex);
+        final var error = """
+                %s
+                > ERROR %s
+                ```java
+                %s
+                ```
+                """.formatted(
+                stringBuf,
+                rootEx.getMessage(),
+                stackTraceToString(rootEx)
+        );
+        final var displayBuf = new StringBuilder()
+                .append(stringBuf)
+                .append("\n")
+                .append(error);
+        Platform.runLater(() -> {
+            responseMessageView.setContent(displayBuf);
+            responseMessageView.setButtonBarEnabled(true);
+            if (source == enterToggleButton) {
+                enterToggleButton.setSelected(false);
+            }
+        });
     }
 
 }

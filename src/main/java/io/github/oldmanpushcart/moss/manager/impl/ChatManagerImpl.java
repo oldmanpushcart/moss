@@ -87,8 +87,14 @@ public class ChatManagerImpl implements ChatManager {
                 .thenCompose(choices -> {
                     final var newChatRequest = ChatRequest.newBuilder(request)
                             .addTools(choices)
+                            .option(ChatOptions.ENABLE_PARALLEL_TOOL_CALLS, true)
                             .build();
                     return dashscope.chat().flow(newChatRequest);
+                })
+                .whenComplete((v, ex) -> {
+                    if (null != ex) {
+                        log.warn("moss://chat/flow error!", ex);
+                    }
                 });
     }
 
@@ -116,45 +122,51 @@ public class ChatManagerImpl implements ChatManager {
     private CompletionStage<Collection<? extends Tool>> choiceTools(DashscopeClient dashscope, ChatRequest request) {
         final var choiceToolsRequest = ChatRequest.newBuilder()
                 .model(ChatModel.QWEN_TURBO)
+                .option(ChatOptions.RESPONSE_FORMAT, ChatOptions.ResponseFormat.JSON)
                 .addMessages(request.messages().stream()
-                        .filter(message-> CommonUtils.isIn(message.role(), Message.Role.USER, Message.Role.AI))
+                        .filter(message -> CommonUtils.isIn(message.role(), Message.Role.USER, Message.Role.AI))
                         .toList())
-                .addMessage(Message.ofSystem("""
-                        你是一个智能函数路由助手，负责根据用户的输入上下文选择最合适的函数进行调用。逐行仅返回函数名称列表。
-                        函数列表：
-                        
-                        %s
-                        """.formatted(
-                        tools.stream()
-                                .map(ChatFunctionTool::meta)
-                                .map(meta -> """
-                                ## %s
-                                %s
-                                
-                                
-                                """.formatted(meta.name(), meta.description()))
-                                .reduce((first, second) -> first + "\n" + second)
-                                .orElse("")
-                )))
+                .building(builder -> {
+
+                    final var toolsMap = tools.stream()
+                            .map(ChatFunctionTool::meta)
+                            .collect(Collectors.toMap(
+                                    ChatFunctionTool.Meta::name,
+                                    ChatFunctionTool.Meta::description
+                            ));
+
+                    final var toolsJson = JacksonUtils.toJson(toolsMap);
+                    builder.addMessage(Message.ofSystem("""
+                            你是一个智能函数路由助手，负责根据用户的输入上下文选择最合适的函数进行调用。
+                            
+                            ### 行为要求
+                            - 需要提取出函数名并组成字符串数组
+                            - 请仅输出JSON字符串
+                            - 不要以markdown的格式输出
+                            - 不要输出其他无关内容
+                            
+                            ### 输出格式
+                            ['函数1','函数2‘，’函数3']
+                            
+                            ### 函数列表
+                            %s
+                            
+                            """.formatted(toolsJson)));
+
+                })
                 .build();
         return dashscope.chat().async(choiceToolsRequest)
                 .thenApply(choiceToolsResponse -> {
                     final var responseText = choiceToolsResponse.output().best().message().text();
-                    final var nameSet = splitLines(responseText);
+                    final var fuNameArray = JacksonUtils.toObject(responseText, String[].class);
+                    final var fnNameSet = Stream.of(fuNameArray)
+                            .filter(StringUtils::isNotBlank)
+                            .map(String::trim)
+                            .collect(Collectors.toUnmodifiableSet());
                     return tools.stream()
-                            .filter(tool -> nameSet.contains(tool.meta().name()))
+                            .filter(tool -> fnNameSet.contains(tool.meta().name()))
                             .toList();
                 });
-    }
-
-    private static Set<String> splitLines(String string) {
-        if (isBlank(string)) {
-            return emptySet();
-        }
-        return Stream.of(StringUtils.split(string, "\r\n"))
-                .filter(StringUtils::isNotBlank)
-                .map(String::trim)
-                .collect(Collectors.toUnmodifiableSet());
     }
 
 }
