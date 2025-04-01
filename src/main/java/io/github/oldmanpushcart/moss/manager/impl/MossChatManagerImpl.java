@@ -43,7 +43,7 @@ public class MossChatManagerImpl implements MossChatManager {
                 .option(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true)
                 .option(ChatOptions.ENABLE_WEB_SEARCH, true)
                 .option(ChatOptions.SEARCH_OPTIONS, new ChatSearchOption()
-                        .forcedSearch(true)
+                        .forcedSearch(false)
                         .enableSource(true)
                         .searchStrategy(ChatSearchOption.SearchStrategy.STANDARD)
                 )

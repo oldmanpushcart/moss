@@ -1,11 +1,11 @@
 package io.github.oldmanpushcart.moss.infra.downloader.internal;
 
-import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.dashscope4j.util.HttpUtils;
 import io.github.oldmanpushcart.moss.infra.downloader.Downloader;
 import io.github.oldmanpushcart.moss.infra.downloader.DownloaderConfig;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -26,16 +26,21 @@ import java.util.concurrent.CompletionStage;
 public class DownloaderImpl implements Downloader {
 
     private final DownloaderConfig config;
-    private final DashscopeClient dashscope;
 
     @Override
-    public CompletionStage<URI> download(URI source) {
-        return HttpUtils.fetchAsTempFile(dashscope.base().http(), source)
+    public CompletionStage<URI> download(OkHttpClient http, URI source) {
+        final var filename = Path.of(source.getPath()).getFileName().toString();
+        return download(http, source, filename);
+    }
+
+    @Override
+    public CompletionStage<URI> download(OkHttpClient http, URI source, String filename) {
+        return HttpUtils.fetchAsTempFile(http, source)
                 .thenApply(temp -> {
                     try {
 
                         final var tempPath = temp.toPath();
-                        final var targetPath = newTargetPath(config.getLocation(), source);
+                        final var targetPath = newTargetPath(config.getLocation(), filename);
 
                         if (!Files.exists(targetPath.getParent())) {
                             Files.createDirectories(targetPath.getParent());
@@ -51,11 +56,11 @@ public class DownloaderImpl implements Downloader {
     }
 
     @Override
-    public CompletionStage<List<URI>> downloads(List<URI> sources) {
+    public CompletionStage<List<URI>> downloads(OkHttpClient http, List<URI> sources) {
         CompletionStage<List<URI>> stage = CompletableFuture.completedStage(new ArrayList<>());
         for (final var source : sources) {
             stage = stage.thenCompose(list ->
-                    download(source)
+                    download(http, source)
                             .thenApply(uri -> {
                                 list.add(uri);
                                 return list;
@@ -64,12 +69,12 @@ public class DownloaderImpl implements Downloader {
         return stage;
     }
 
-    private static Path newTargetPath(Path location, URI source) {
+    private static Path newTargetPath(Path location, String filename) {
         final var now = LocalDateTime.now();
         return location
                 .resolve(String.format("%02d", now.getHour()))
                 .resolve(String.format("%02d", now.getMinute()))
-                .resolve(Path.of(source.getPath()).getFileName());
+                .resolve(filename);
     }
 
 

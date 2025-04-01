@@ -34,6 +34,7 @@ public class DashscopeImage2VideoFunction
 
     @Override
     public CompletionStage<Result> call(Caller caller, Parameter parameter) {
+        final var http = caller.client().base().http();
         return CompletableFuture.completedStage(null)
                 .thenCompose(unused -> upload(parameter.referenceImage()))
                 .thenCompose(upload -> {
@@ -50,9 +51,7 @@ public class DashscopeImage2VideoFunction
                                             Duration.ofMinutes(1),
                                             Duration.ofMinutes(15)
                                     )))
-                            .thenCompose(response -> {
-                                return downloader.download(response.output().video());
-                            })
+                            .thenCompose(response -> downloader.download(http, response.output().video()))
                             .thenApply(Result::new);
                 });
     }

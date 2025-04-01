@@ -29,6 +29,7 @@ public class DashscopeText2VideoFunction
 
     @Override
     public CompletionStage<Result> call(Caller caller, Parameter parameter) {
+        final var http = caller.client().base().http();
         final var request = TextGenVideoRequest.newBuilder()
                 .model(TextGenVideoModel.WANX_V2_1_T2V_TURBO)
                 .option(TextGenVideoOptions.ENABLE_PROMPT_EXTEND, true)
@@ -41,9 +42,8 @@ public class DashscopeText2VideoFunction
                                 Duration.ofMinutes(1),
                                 Duration.ofMinutes(15)
                         )))
-                .thenCompose(response -> {
-                    return downloader.download(response.output().video());
-                })
+                .thenCompose(response ->
+                        downloader.download(http, response.output().video()))
                 .thenApply(Result::new);
     }
 

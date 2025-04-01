@@ -66,7 +66,7 @@ public class DashscopeImage2ImageFunction
                                             .filter(GenImageResponse.Item::isSuccess)
                                             .map(GenImageResponse.Item::image)
                                             .toList())
-                            .thenCompose(downloader::downloads)
+                            .thenCompose(imageURIs-> downloader.downloads(caller.client().base().http(), imageURIs))
                             .thenApply(Result::new);
                 });
     }
