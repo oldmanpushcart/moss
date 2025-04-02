@@ -3,6 +3,8 @@ package io.github.oldmanpushcart.moss.infra.boot;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.ApplicationEventPublisher;
@@ -18,9 +20,8 @@ public class BootConfiguration {
 
     @Bean
     public static BeanDefinitionRegistryPostProcessor bootstrapBeanCounter() {
-        return registry -> {
-            bootBeanTotalRef.set(registry.getBeanDefinitionCount());
-        };
+        return registry ->
+                bootBeanTotalRef.set(registry.getBeanDefinitionCount());
     }
 
     @Bean

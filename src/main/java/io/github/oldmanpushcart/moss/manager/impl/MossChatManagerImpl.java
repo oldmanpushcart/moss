@@ -36,7 +36,7 @@ public class MossChatManagerImpl implements MossChatManager {
 
         final var request = ChatRequest.newBuilder()
                 .context(MossChatContext.class, context)
-                .model(ChatModel.QWEN_MAX)
+                .model(ChatModel.QWQ_PLUS)
                 .option(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true)
                 .option(ChatOptions.ENABLE_WEB_SEARCH, true)
                 .option(ChatOptions.SEARCH_OPTIONS, new ChatSearchOption()

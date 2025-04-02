@@ -32,8 +32,8 @@ public class MossGuiApplication extends Application {
     public void start(Stage primaryStage) throws Exception {
         displaySplashStage()
                 .thenCompose(unused -> displayMainStage(primaryStage))
-                .whenComplete((v,ex)-> {
-                    if(null != ex) {
+                .whenComplete((v, ex) -> {
+                    if (null != ex) {
                         log.error("moss://startup failed!", ex);
                         Platform.exit();
                     } else {
@@ -67,24 +67,31 @@ public class MossGuiApplication extends Application {
     // 加载Spring容器
     private CompletionStage<?> loadingSpringCtx(SplashController controller) {
         return CompletableFuture.runAsync(() -> {
-            final var arguments = getParameters().getRaw().toArray(new String[0]);
-            final var springApp = new SpringApplication(MossApplication.class);
-            springApp.addListeners(
 
-                    // 监听启动开始
-                    (ApplicationListener<ApplicationStartingEvent>) event ->
-                            Platform.runLater(controller::updateProgressBegin),
+            final var preLoader = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(MossApplication.class.getClassLoader());
+            try {
+                final var arguments = getParameters().getRaw().toArray(new String[0]);
+                final var springApp = new SpringApplication(MossApplication.class);
+                springApp.addListeners(
 
-                    // 监听启动进度
-                    (ApplicationListener<BootEvent>) event ->
-                            Platform.runLater(() -> controller.updateProgress(event.progress(), event.tips())),
+                        // 监听启动开始
+                        (ApplicationListener<ApplicationStartingEvent>) event ->
+                                Platform.runLater(controller::updateProgressBegin),
 
-                    // 监听启动完成
-                    (ApplicationListener<ApplicationReadyEvent>) event ->
-                            Platform.runLater(controller::updateProgressFinish)
+                        // 监听启动进度
+                        (ApplicationListener<BootEvent>) event ->
+                                Platform.runLater(() -> controller.updateProgress(event.progress(), event.tips())),
 
-            );
-            springCtx = springApp.run(arguments);
+                        // 监听启动完成
+                        (ApplicationListener<ApplicationReadyEvent>) event ->
+                                Platform.runLater(controller::updateProgressFinish)
+
+                );
+                springCtx = springApp.run(arguments);
+            } finally {
+                Thread.currentThread().setContextClassLoader(preLoader);
+            }
         });
     }
 

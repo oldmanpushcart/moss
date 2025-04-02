@@ -117,9 +117,9 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
 
                         // 构建引用
                         .doOnNext(response -> {
-                            if (referenceBuf.isEmpty() && !response.output().search().results().isEmpty()) {
+                            if (referenceBuf.isEmpty() && response.output().hasSearchInfo()) {
                                 referenceBuf.append("> ##### 参考资料\n");
-                                response.output().search().results()
+                                response.output().searchInfo().results()
                                         .forEach(result -> referenceBuf.append("> - [%s](%s)\n".formatted(
                                                 result.title(),
                                                 result.site()
@@ -128,7 +128,10 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                         })
 
                         // 转换文本流
-                        .map(response -> response.output().best().message().text())
+                        .map(response -> {
+                            final var message = response.output().best().message();
+                            return message.text();
+                        })
 
                         // 开始订阅
                         .subscribe(
