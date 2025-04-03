@@ -1,12 +1,9 @@
 package io.github.oldmanpushcart.moss.gui.controller.chat;
 
-import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
+import io.github.oldmanpushcart.dashscope4j.api.chat.*;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.moss.gui.view.AttachmentListView;
 import io.github.oldmanpushcart.moss.gui.view.MessageView;
-import io.github.oldmanpushcart.moss.infra.memory.Memory;
-import io.github.oldmanpushcart.moss.infra.memory.MemoryFragment;
-import io.github.oldmanpushcart.moss.manager.MossChatContext;
 import io.github.oldmanpushcart.moss.manager.MossChatManager;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import javafx.application.Platform;
@@ -16,9 +13,12 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.VBox;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.github.oldmanpushcart.moss.util.ExceptionUtils.resolveRootCause;
@@ -31,12 +31,11 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
     private final VBox messagesBox;
     private final TextArea inputTextArea;
     private final AttachmentListView attachmentListView;
+    private final ToggleButton deepThinkingToggleButton;
     private final ToggleButton enterToggleButton;
     private final AtomicBoolean autoScrollToBottomRef;
 
     private final MossChatManager mossChatManager;
-    private final DashscopeClient dashscope;
-    private final Memory memory;
     private final CompositeDisposableControl chatControl = new CompositeDisposableControl();
 
     @Override
@@ -54,10 +53,6 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
             // 清空输入框并获取文本
             final var inputText = popInputText();
 
-            // 构建新的记忆片段
-            final var fragment = new MemoryFragment()
-                    .requestMessage(Message.ofUser(inputText));
-
             // 构造请求消息并添加到消息列表
             messagesBox.getChildren()
                     .add(new MessageView() {{
@@ -68,24 +63,55 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
             // 构建应答消息并添加到消息列表
             final var responseMessageView = new MessageView() {{
                 setButtonBarEnabled(false);
-                getRedoButton().setOnAction(event -> {
-                    event.consume();
-                    autoScrollToBottomRef.set(false);
-                    onChat(event.getSource(), this, fragment, new CompositeDisposable());
-                });
             }};
             messagesBox.getChildren()
                     .add(responseMessageView);
 
+            final var request = ChatRequest.newBuilder()
+                    .context(MossChatContext.class,
+                            new MossChatContext() {{
+                                setSource(event.getSource());
+                                setResponseMessageView(responseMessageView);
+                                setAttachments(selectedAttachments());
+                            }})
+                    .model(decideChatModel())
+                    .option(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true)
+                    .option(ChatOptions.ENABLE_WEB_SEARCH, true)
+                    .option(ChatOptions.SEARCH_OPTIONS, new ChatSearchOption() {{
+                        forcedSearch(false);
+                        searchStrategy(SearchStrategy.STANDARD);
+                        enableCitation();
+                    }})
+                    .addMessage(Message.ofUser(inputText))
+                    .build();
+
+            responseMessageView.getRedoButton()
+                    .setOnAction(e -> {
+                        e.consume();
+                        autoScrollToBottomRef.set(false);
+                        final var newRequest = ChatRequest.newBuilder(request)
+                                .model(decideChatModel())
+                                .building(builder -> {
+                                    final var context = request.context(MossChatContext.class)
+                                            .cleanDisplayBuf()
+                                            .setSource(e)
+                                            .setAttachments(selectedAttachments());
+                                    builder.context(MossChatContext.class, context);
+                                })
+                                .build();
+                        onChat(newRequest, new CompositeDisposable());
+                    });
+
             // 执行对话
             final var dispose = chatControl.interruptAndNew();
-            onChat(event.getSource(), responseMessageView, fragment, dispose);
+            onChat(request, dispose);
 
         } else {
             chatControl.interrupt();
         }
     }
 
+    // 获取输入框的文本并清空输入框
     private String popInputText() {
         assert isFxApplicationThread();
         final var inputText = inputTextArea.getText();
@@ -93,93 +119,119 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
         return inputText;
     }
 
-    private void onChat(Object source, MessageView responseMessageView, MemoryFragment fragment, CompositeDisposable dispose) {
+    // 获取选择的附件
+    private List<File> selectedAttachments() {
+        return attachmentListView.isVisible()
+                ? List.copyOf(attachmentListView.selected())
+                : Collections.emptyList();
+    }
+
+    // 决定采用那个对话模型
+    private ChatModel decideChatModel() {
+        return deepThinkingToggleButton.isSelected()
+                ? ChatModel.QWQ_PLUS
+                : ChatModel.QWEN_MAX;
+    }
+
+    // 执行对话
+    private void onChat(ChatRequest request, CompositeDisposable dispose) {
+
+        final var context = request.context(MossChatContext.class);
+        final var responseMessageView = context.getResponseMessageView();
 
         Platform.runLater(() -> {
             responseMessageView.setContent("思考中...");
             responseMessageView.setButtonBarEnabled(false);
         });
 
-        final var attachments = attachmentListView.isVisible()
-                ? attachmentListView.selected()
-                : Collections.<File>emptyList();
-
-        final var stringBuf = new StringBuilder();
-        final var referenceBuf = new StringBuilder();
-
-        final var context = MossChatContext.newBuilder()
-                .fragment(fragment)
-                .attachments(attachments)
-                .build();
-
-        mossChatManager.chat(context)
+        mossChatManager.chat(request)
                 .thenAccept(responseFlow -> responseFlow
-
-                        // 构建引用
-                        .doOnNext(response -> {
-                            if (referenceBuf.isEmpty() && response.output().hasSearchInfo()) {
-                                referenceBuf.append("> ##### 参考资料\n");
-                                response.output().searchInfo().results()
-                                        .forEach(result -> referenceBuf.append("> - [%s](%s)\n".formatted(
-                                                result.title(),
-                                                result.site()
-                                        )));
-                            }
-                        })
-
-                        // 转换文本流
-                        .map(response -> {
-                            final var message = response.output().best().message();
-                            return message.text();
-                        })
-
-                        // 开始订阅
                         .subscribe(
-                                text -> renderingResponseMessageViewOnNext(responseMessageView, stringBuf, text),
-                                ex -> renderingResponseMessageViewOnError(responseMessageView, source, stringBuf, ex),
-                                () -> {
-
-                                    // 保存记忆片段
-                                    fragment.responseMessage(Message.ofAi(stringBuf.toString()));
-                                    memory.saveOrUpdate(fragment);
-
-                                    // 渲染应答消息视图
-                                    renderingResponseMessageViewOnFinish(responseMessageView, source, stringBuf, referenceBuf);
-
-                                },
+                                r -> renderingResponseMessageViewOnNext(context, r),
+                                ex -> renderingResponseMessageViewOnError(context, ex),
+                                () -> renderingResponseMessageViewOnFinish(context),
                                 dispose
                         ))
+
                 .whenComplete((v, ex) -> {
                     if (null != ex) {
-                        renderingResponseMessageViewOnError(responseMessageView, source, stringBuf, ex);
+                        renderingResponseMessageViewOnError(context, ex);
                     }
                 });
     }
 
-    private void renderingResponseMessageViewOnNext(MessageView responseMessageView, StringBuilder stringBuf, String text) {
-        stringBuf.append(text);
-        Platform.runLater(() -> {
-            if (null != text && !text.isEmpty()) {
-                responseMessageView.setContent(stringBuf);
+    // 渲染对话的显示内容
+    private static StringBuilder renderingResponseDisplayBuf(MossChatContext context) {
+        final var displayBuf = new StringBuilder();
+        final var reasoningContentDisplayBuf = context.getReasoningContentDisplayBuf();
+        if (StringUtils.isNoneBlank(reasoningContentDisplayBuf)) {
+            try (final var scanner = new Scanner(reasoningContentDisplayBuf.toString())) {
+                while (scanner.hasNextLine()) {
+                    displayBuf.append("> %s\n".formatted(scanner.nextLine()));
+                }
             }
-        });
+        }
+        final var contentDisplayBuf = context.getContentDisplayBuf();
+        if (StringUtils.isNoneBlank(contentDisplayBuf)) {
+            displayBuf
+                    .append(displayBuf.isEmpty() ? "" : "\n")
+                    .append(contentDisplayBuf);
+        }
+        return displayBuf;
     }
 
-    private void renderingResponseMessageViewOnFinish(MessageView responseMessageView, Object source, StringBuilder stringBuf, StringBuilder referenceBuf) {
-        final var displayBuf = new StringBuilder()
-                .append(stringBuf)
-                .append("\n\n")
+
+    private void renderingResponseMessageViewOnNext(MossChatContext context, ChatResponse response) {
+
+        // 更新检索引用
+        final var referenceBuf = context.getReferenceDisplayBuf();
+        if (referenceBuf.isEmpty() && response.output().hasSearchInfo()) {
+            response.output().searchInfo().results()
+                    .forEach(result -> referenceBuf.append("> - [%s](%s)\n".formatted(
+                            result.title(),
+                            result.site()
+                    )));
+        }
+
+        final var responseMessage = response.output().best().message();
+
+        // 更新内容缓存
+        final var contentDisplayBuf = context.getContentDisplayBuf();
+        final var content = responseMessage.text();
+        if (StringUtils.isNoneBlank(content)) {
+            contentDisplayBuf.append(content);
+        }
+
+        // 更新思考缓存
+        final var reasoningContentDisplayBuf = context.getReasoningContentDisplayBuf();
+        final var reasoningContent = responseMessage.reasoningContent();
+        if (StringUtils.isNoneBlank(reasoningContent)) {
+            reasoningContentDisplayBuf.append(reasoningContent);
+        }
+
+        final var responseMessageView = context.getResponseMessageView();
+        final var responseDisplayBuf = renderingResponseDisplayBuf(context);
+        Platform.runLater(() -> responseMessageView.setContent(responseDisplayBuf));
+    }
+
+    private void renderingResponseMessageViewOnFinish(MossChatContext context) {
+        final var referenceBuf = context.getReferenceDisplayBuf();
+        final var responseMessageView = context.getResponseMessageView();
+        final var responseDisplayBuf = renderingResponseDisplayBuf(context)
+                .append("\n")
                 .append(referenceBuf);
         Platform.runLater(() -> {
-            responseMessageView.setContent(displayBuf);
+            responseMessageView.setContent(responseDisplayBuf);
             responseMessageView.setButtonBarEnabled(true);
-            if (source == enterToggleButton) {
+            if (context.getSource() == enterToggleButton) {
                 enterToggleButton.setSelected(false);
             }
         });
     }
 
-    private void renderingResponseMessageViewOnError(MessageView responseMessageView, Object source, StringBuilder stringBuf, Throwable ex) {
+    private void renderingResponseMessageViewOnError(MossChatContext context, Throwable ex) {
+        final var responseMessageView = context.getResponseMessageView();
+        final var contentDisplayBuf = context.getContentDisplayBuf();
         final var rootEx = resolveRootCause(ex);
         final var error = """
                 %s
@@ -188,18 +240,17 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                 %s
                 ```
                 """.formatted(
-                stringBuf,
+                contentDisplayBuf,
                 rootEx.getMessage(),
                 stackTraceToString(rootEx)
         );
-        final var displayBuf = new StringBuilder()
-                .append(stringBuf)
+        final var responseDisplayBuf = renderingResponseDisplayBuf(context)
                 .append("\n")
                 .append(error);
         Platform.runLater(() -> {
-            responseMessageView.setContent(displayBuf);
+            responseMessageView.setContent(responseDisplayBuf);
             responseMessageView.setButtonBarEnabled(true);
-            if (source == enterToggleButton) {
+            if (context.getSource() == enterToggleButton) {
                 enterToggleButton.setSelected(false);
             }
         });

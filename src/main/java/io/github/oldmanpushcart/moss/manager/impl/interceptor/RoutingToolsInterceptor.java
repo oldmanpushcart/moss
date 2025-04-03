@@ -1,15 +1,17 @@
-package io.github.oldmanpushcart.moss.manager.impl.chain;
+package io.github.oldmanpushcart.moss.manager.impl.interceptor;
 
 import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatModel;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatOptions;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatRequest;
+import io.github.oldmanpushcart.dashscope4j.api.chat.ChatResponse;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.Tool;
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFunction;
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFunctionTool;
 import io.github.oldmanpushcart.moss.util.CommonUtils;
 import io.github.oldmanpushcart.moss.util.JacksonUtils;
+import io.reactivex.rxjava3.core.Flowable;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,15 +26,16 @@ import java.util.stream.Stream;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.CompletableFuture.completedStage;
 
+/**
+ * 路由工具拦截器
+ */
 @Component
-public class ChoiceToolsChatRequestChain implements ChatRequestChain {
+public class RoutingToolsInterceptor implements MossChatInterceptor {
 
-    private final DashscopeClient dashscope;
     private final Set<ChatFunctionTool> tools;
 
     @Autowired
-    public ChoiceToolsChatRequestChain(DashscopeClient dashscope, Set<ChatFunction<?, ?>> functions) {
-        this.dashscope = dashscope;
+    public RoutingToolsInterceptor(Set<ChatFunction<?, ?>> functions) {
         this.tools = buildingTools(functions);
     }
 
@@ -43,21 +46,23 @@ public class ChoiceToolsChatRequestChain implements ChatRequestChain {
     }
 
     @Override
-    public CompletionStage<ChatRequest> chain(ChatRequest request) {
-        return completedStage(request)
-                .thenCompose(this::choiceTools)
-                .thenApply(tools -> {
-                    if (tools.isEmpty()) {
-                        return request;
-                    }
-                    return ChatRequest.newBuilder(request)
-                            .option(ChatOptions.ENABLE_PARALLEL_TOOL_CALLS, true)
-                            .tools(tools)
-                            .build();
-                });
+    public CompletionStage<Flowable<ChatResponse>> intercept(Chain chain) {
+        return completedStage(chain.request())
+                .thenCompose(request ->
+                        routingTools(chain.dashscope(), request)
+                                .thenApply(tools -> {
+                                    if (tools.isEmpty()) {
+                                        return request;
+                                    }
+                                    return ChatRequest.newBuilder(request)
+                                            .option(ChatOptions.ENABLE_PARALLEL_TOOL_CALLS, true)
+                                            .tools(tools)
+                                            .build();
+                                }))
+                .thenCompose(chain::process);
     }
 
-    private CompletionStage<Collection<? extends Tool>> choiceTools(ChatRequest request) {
+    private CompletionStage<Collection<? extends Tool>> routingTools(DashscopeClient dashscope, ChatRequest request) {
         final var choiceToolsRequest = ChatRequest.newBuilder()
                 .model(ChatModel.QWEN_TURBO)
                 .option(ChatOptions.RESPONSE_FORMAT, ChatOptions.ResponseFormat.JSON)
@@ -75,7 +80,7 @@ public class ChoiceToolsChatRequestChain implements ChatRequestChain {
 
                     final var toolsJson = JacksonUtils.toJson(toolsMap);
                     try {
-                        final var loader = ChoiceToolsChatRequestChain.class.getClassLoader();
+                        final var loader = RoutingToolsInterceptor.class.getClassLoader();
                         final var choiceToolsPrompt = IOUtils
                                 .resourceToString("prompt/choice-tools-prompt.md", UTF_8, loader)
                                 .formatted(toolsJson);

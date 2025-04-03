@@ -1,8 +1,10 @@
-package io.github.oldmanpushcart.moss.manager.impl.chain;
+package io.github.oldmanpushcart.moss.manager.impl.interceptor;
 
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatRequest;
+import io.github.oldmanpushcart.dashscope4j.api.chat.ChatResponse;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.moss.manager.MossChatManager;
+import io.reactivex.rxjava3.core.Flowable;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 
@@ -11,18 +13,21 @@ import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.concurrent.CompletableFuture.completedStage;
 
+/**
+ * 系统提示语注入拦截器
+ */
 @Component
-public class MossPromptChatRequestChain implements ChatRequestChain {
+public class InjectSystemPromptInterceptor implements MossChatInterceptor {
 
     @Override
-    public CompletionStage<ChatRequest> chain(ChatRequest request) {
+    public CompletionStage<Flowable<ChatResponse>> intercept(Chain chain) {
+        final var request = chain.request();
         final var newRequest = ChatRequest.newBuilder(request)
                 .building(builder -> {
                     try {
                         final var loader = MossChatManager.class.getClassLoader();
-                        final var prompt = IOUtils.resourceToString("prompt/moss-prompt.md", UTF_8, loader);
+                        final var prompt = IOUtils.resourceToString("prompt/system-prompt.md", UTF_8, loader);
                         builder.messages(List.of(Message.ofSystem(prompt)));
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -30,7 +35,7 @@ public class MossPromptChatRequestChain implements ChatRequestChain {
                 })
                 .addMessages(request.messages())
                 .build();
-        return completedStage(newRequest);
+        return chain.process(newRequest);
     }
 
 }

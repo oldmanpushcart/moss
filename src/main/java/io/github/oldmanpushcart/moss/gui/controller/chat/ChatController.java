@@ -42,6 +42,9 @@ public class ChatController {
     private AttachmentListView attachmentListView;
 
     @FXML
+    private ToggleButton deepThinkingToggleButton;
+
+    @FXML
     private ToggleButton autoSpeakToggleButton;
 
     @FXML
@@ -58,14 +61,12 @@ public class ChatController {
 
     private final AtomicBoolean autoScrollToBottomRef = new AtomicBoolean(true);
     private final MossChatManager mossChatManager;
-    private final DashscopeClient dashscope;
     private final Memory memory;
     private final Uploader uploader;
 
     @Autowired
     public ChatController(MossChatManager mossChatManager, DashscopeClient dashscope, Memory memory, Uploader uploader) {
         this.mossChatManager = mossChatManager;
-        this.dashscope = dashscope;
         this.memory = memory;
         this.uploader = uploader;
     }
@@ -103,11 +104,10 @@ public class ChatController {
                         messagesBox,
                         inputTextArea,
                         attachmentListView,
+                        deepThinkingToggleButton,
                         enterToggleButton,
                         autoScrollToBottomRef,
-                        mossChatManager,
-                        dashscope,
-                        memory
+                        mossChatManager
                 ));
 
         // 绑定自动滚动
@@ -121,22 +121,18 @@ public class ChatController {
     // 从记忆体中加载历史消息
     private void loadingMessages() {
         memory.recall().forEach(fragment -> {
-
             final var inputText = fragment.requestMessage().text();
-
             messagesBox.getChildren()
                     .add(new MessageView() {{
                         setContent(inputText);
                         setButtonBarEnabled(false);
                     }});
-
             messagesBox.getChildren()
                     .add(new MessageView() {{
                         setContent(fragment.responseMessage().text());
                         setButtonBarEnabled(true);
                         setRedoButtonEnabled(false);
                     }});
-
         });
     }
 
@@ -179,6 +175,7 @@ public class ChatController {
     }
 
     private void initializeUploaderListView() {
+
         // 绑定显示上传列表
         uploaderListView.visibleProperty()
                 .bind(uploaderToggleButton.selectedProperty());
