@@ -12,6 +12,13 @@ import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
+/**
+ * 拦截式对话流
+ *
+ * @param dashscope   通义千问客户端
+ * @param opFlow      对话流
+ * @param interceptor 拦截器
+ */
 record InterceptionChatOpFlow(
         DashscopeClient dashscope,
         ChatOpFlow opFlow,
@@ -37,6 +44,14 @@ record InterceptionChatOpFlow(
         return interceptor.intercept(chain);
     }
 
+    /**
+     * 组合拦截器
+     *
+     * @param dashscope    通义千问客户端
+     * @param opFlow       对话流
+     * @param interceptors 拦截器集合
+     * @return 组合拦截器
+     */
     public static ChatOpFlow group(DashscopeClient dashscope, ChatOpFlow opFlow, List<MossChatInterceptor> interceptors) {
         final var cloneInterceptors = new ArrayList<>(interceptors);
         Collections.reverse(cloneInterceptors);

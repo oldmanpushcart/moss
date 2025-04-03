@@ -16,6 +16,9 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
+/**
+ * Moss对话管理器实现
+ */
 @Slf4j
 @Component
 public class MossChatManagerImpl implements MossChatManager {
