@@ -8,6 +8,7 @@ import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFunction;
 import io.github.oldmanpushcart.moss.infra.downloader.Downloader;
 import io.github.oldmanpushcart.moss.infra.extra.amap.AmapConfig;
 import io.github.oldmanpushcart.moss.infra.extra.amap.Location;
+import lombok.Value;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,12 +77,14 @@ public class AmapLocationMapFunction implements ChatFunction<AmapLocationMapFunc
 
     }
 
-    public record Result(
+    @Value
+    public static class Result {
 
-            @JsonProperty(required = true)
-            URI imageURI
+        @JsonProperty
+        URI imageURI;
 
-    ) {
+        @JsonProperty
+        String prompt = "返回的对象是地图图片地址，请以图片形式进行后续处理";
 
     }
 

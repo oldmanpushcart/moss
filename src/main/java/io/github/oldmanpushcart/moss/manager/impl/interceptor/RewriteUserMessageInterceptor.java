@@ -3,7 +3,7 @@ package io.github.oldmanpushcart.moss.manager.impl.interceptor;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatRequest;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatResponse;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
-import io.github.oldmanpushcart.moss.gui.controller.chat.MossChatContext;
+import io.github.oldmanpushcart.moss.manager.MossChatContext;
 import io.github.oldmanpushcart.moss.util.JacksonUtils;
 import io.reactivex.rxjava3.core.Flowable;
 import org.springframework.stereotype.Component;

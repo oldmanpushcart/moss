@@ -74,7 +74,7 @@ public class AmapGeocodeGeoFunction implements ChatFunction<AmapGeocodeGeoFuncti
 
     public record Result(
 
-            @JsonProperty(required = true)
+            @JsonProperty
             String output
 
     ) {

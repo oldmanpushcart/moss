@@ -4,6 +4,7 @@ import io.github.oldmanpushcart.dashscope4j.api.chat.*;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.moss.gui.view.AttachmentListView;
 import io.github.oldmanpushcart.moss.gui.view.MessageView;
+import io.github.oldmanpushcart.moss.manager.MossChatContext;
 import io.github.oldmanpushcart.moss.manager.MossChatManager;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import javafx.application.Platform;
@@ -70,17 +71,20 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
             final var request = ChatRequest.newBuilder()
                     .context(MossChatContext.class,
                             new MossChatContext() {{
+                                setAttachments(selectedAttachments());
+                            }})
+                    .context(MossChatRenderingContext.class,
+                            new MossChatRenderingContext() {{
                                 setSource(event.getSource());
                                 setResponseMessageView(responseMessageView);
-                                setAttachments(selectedAttachments());
                             }})
                     .model(decideChatModel())
                     .option(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true)
                     .option(ChatOptions.ENABLE_WEB_SEARCH, true)
                     .option(ChatOptions.SEARCH_OPTIONS, new ChatSearchOption() {{
-                        forcedSearch(false);
+                        forcedSearch(true);
                         searchStrategy(SearchStrategy.STANDARD);
-                        enableCitation();
+                        enableSource();
                     }})
                     .addMessage(Message.ofUser(inputText))
                     .build();
@@ -93,10 +97,12 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                                 .model(decideChatModel())
                                 .building(builder -> {
                                     final var context = request.context(MossChatContext.class)
-                                            .cleanDisplayBuf()
-                                            .setSource(e)
                                             .setAttachments(selectedAttachments());
+                                    final var renderingContext = request.context(MossChatRenderingContext.class)
+                                            .setSource(e)
+                                            .cleanDisplayBuf();
                                     builder.context(MossChatContext.class, context);
+                                    builder.context(MossChatRenderingContext.class, renderingContext);
                                 })
                                 .build();
                         onChat(newRequest, new CompositeDisposable());
@@ -136,8 +142,8 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
     // 执行对话
     private void onChat(ChatRequest request, CompositeDisposable dispose) {
 
-        final var context = request.context(MossChatContext.class);
-        final var responseMessageView = context.getResponseMessageView();
+        final var renderingContext = request.context(MossChatRenderingContext.class);
+        final var responseMessageView = renderingContext.getResponseMessageView();
 
         Platform.runLater(() -> {
             responseMessageView.setContent("思考中...");
@@ -147,21 +153,21 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
         mossChatManager.chat(request)
                 .thenAccept(responseFlow -> responseFlow
                         .subscribe(
-                                r -> renderingResponseMessageViewOnNext(context, r),
-                                ex -> renderingResponseMessageViewOnError(context, ex),
-                                () -> renderingResponseMessageViewOnFinish(context),
+                                r -> renderingResponseMessageViewOnNext(renderingContext, r),
+                                ex -> renderingResponseMessageViewOnError(renderingContext, ex),
+                                () -> renderingResponseMessageViewOnFinish(renderingContext),
                                 dispose
                         ))
 
                 .whenComplete((v, ex) -> {
                     if (null != ex) {
-                        renderingResponseMessageViewOnError(context, ex);
+                        renderingResponseMessageViewOnError(renderingContext, ex);
                     }
                 });
     }
 
     // 渲染对话的显示内容
-    private static StringBuilder renderingResponseDisplayBuf(MossChatContext context) {
+    private static StringBuilder renderingResponseDisplayBuf(MossChatRenderingContext context) {
         final var displayBuf = new StringBuilder();
         final var reasoningContentDisplayBuf = context.getReasoningContentDisplayBuf();
         if (StringUtils.isNoneBlank(reasoningContentDisplayBuf)) {
@@ -181,7 +187,7 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
     }
 
 
-    private void renderingResponseMessageViewOnNext(MossChatContext context, ChatResponse response) {
+    private void renderingResponseMessageViewOnNext(MossChatRenderingContext context, ChatResponse response) {
 
         // 更新检索引用
         final var referenceBuf = context.getReferenceDisplayBuf();
@@ -214,7 +220,7 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
         Platform.runLater(() -> responseMessageView.setContent(responseDisplayBuf));
     }
 
-    private void renderingResponseMessageViewOnFinish(MossChatContext context) {
+    private void renderingResponseMessageViewOnFinish(MossChatRenderingContext context) {
         final var referenceBuf = context.getReferenceDisplayBuf();
         final var responseMessageView = context.getResponseMessageView();
         final var responseDisplayBuf = renderingResponseDisplayBuf(context)
@@ -229,7 +235,7 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
         });
     }
 
-    private void renderingResponseMessageViewOnError(MossChatContext context, Throwable ex) {
+    private void renderingResponseMessageViewOnError(MossChatRenderingContext context, Throwable ex) {
         final var responseMessageView = context.getResponseMessageView();
         final var contentDisplayBuf = context.getContentDisplayBuf();
         final var rootEx = resolveRootCause(ex);

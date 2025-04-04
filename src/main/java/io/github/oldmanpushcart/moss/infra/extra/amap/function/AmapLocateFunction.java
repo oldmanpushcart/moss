@@ -6,11 +6,11 @@ import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFnDescrip
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFnName;
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFunction;
 import io.github.oldmanpushcart.moss.infra.extra.amap.AmapConfig;
-import io.github.oldmanpushcart.moss.infra.extra.amap.Location;
 import io.github.oldmanpushcart.moss.util.OkHttpUtils;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -19,16 +19,10 @@ import java.util.concurrent.CompletionStage;
 
 import static java.util.Objects.requireNonNull;
 
-/**
- * 高德逆地址编码
- * <p>
- * <a href="https://lbs.amap.com/api/webservice/guide/api/georegeo#t5">高德逆地理编码</a>
- * </p>
- */
 @Component
-@ChatFnName("amap_geocode_regeo")
-@ChatFnDescription("逆地理编码：经纬度转换为地址。例如：116.480881,39.989410：北京市朝阳区阜通东大街6号")
-public class AmapGeocodeRegeoFunction implements ChatFunction<AmapGeocodeRegeoFunction.Parameter, AmapGeocodeRegeoFunction.Result> {
+@ChatFnName("amap_locate")
+@ChatFnDescription("获取当前IP所在的地理位置信息")
+public class AmapLocateFunction implements ChatFunction<AmapLocateFunction.Parameter, AmapLocateFunction.Result> {
 
     @Autowired
     private AmapConfig config;
@@ -44,14 +38,16 @@ public class AmapGeocodeRegeoFunction implements ChatFunction<AmapGeocodeRegeoFu
 
     @Override
     public CompletionStage<Result> call(Caller caller, Parameter parameter) {
-        final var apiUrl = requireNonNull(HttpUrl.parse("https://restapi.amap.com/v3/geocode/regeo"))
+        final var apiUrlBuilder = requireNonNull(HttpUrl.parse("https://restapi.amap.com/v3/ip"))
                 .newBuilder()
-                .addQueryParameter("key", config.getApiKey())
-                .addQueryParameter("location", parameter.location().toString())
-                .addQueryParameter("extensions", "all")
-                .build();
+                .addQueryParameter("key", config.getApiKey());
+
+        if(StringUtils.isNotBlank(parameter.ip())) {
+            apiUrlBuilder.addQueryParameter("ip", parameter.ip());
+        }
+
         final var request = new Request.Builder()
-                .url(apiUrl)
+                .url(apiUrlBuilder.build())
                 .get()
                 .build();
         return OkHttpUtils.async(amapHttp, request)
@@ -60,14 +56,13 @@ public class AmapGeocodeRegeoFunction implements ChatFunction<AmapGeocodeRegeoFu
     }
 
     public record Parameter(
-
-            @JsonPropertyDescription("经纬度")
-            @JsonProperty(required = true)
-            Location location
-
+            @JsonPropertyDescription("IP地址；如果不传IP地址，则用当前本机的出口IP地址进行定位")
+            @JsonProperty
+            String ip
     ) {
 
     }
+
 
     public record Result(
 

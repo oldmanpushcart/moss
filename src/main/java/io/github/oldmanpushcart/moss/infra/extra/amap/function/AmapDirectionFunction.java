@@ -78,7 +78,10 @@ public class AmapDirectionFunction implements ChatFunction<AmapDirectionFunction
     }
 
     public record Result(
+
+            @JsonProperty
             String output
+
     ) {
     }
 

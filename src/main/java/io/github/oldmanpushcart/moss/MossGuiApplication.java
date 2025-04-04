@@ -114,6 +114,7 @@ public class MossGuiApplication extends Application {
                     chatController.lockControlPane();
 
                     // 渲染主界面
+                    stage.getIcons().clear();
                     stage.getIcons().add(ICON_IMAGE);
                     stage.setTitle("MOSS - 人类的渺小，是伟大的开始！");
                     stage.setScene(new Scene(loader.getRoot()));
