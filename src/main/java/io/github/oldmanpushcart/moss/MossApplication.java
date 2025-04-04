@@ -2,9 +2,9 @@ package io.github.oldmanpushcart.moss;
 
 import io.github.oldmanpushcart.moss.backend.boot.BootEvent;
 import io.github.oldmanpushcart.moss.backend.memory.Memory;
-import io.github.oldmanpushcart.moss.frontend.controller.SplashController;
-import io.github.oldmanpushcart.moss.frontend.controller.chat.ChatController;
-import io.github.oldmanpushcart.moss.util.PlatformUtils;
+import io.github.oldmanpushcart.moss.frontend.javafx.controller.SplashController;
+import io.github.oldmanpushcart.moss.frontend.javafx.controller.chat.ChatController;
+import io.github.oldmanpushcart.moss.frontend.util.PlatformUtils;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;

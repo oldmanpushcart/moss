@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.frontend.view;
+package io.github.oldmanpushcart.moss.frontend.javafx.view;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;

@@ -1,6 +1,6 @@
-package io.github.oldmanpushcart.moss.frontend.controller.chat;
+package io.github.oldmanpushcart.moss.frontend.javafx.controller.chat;
 
-import io.github.oldmanpushcart.moss.frontend.view.MessageView;
+import io.github.oldmanpushcart.moss.frontend.javafx.view.MessageView;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

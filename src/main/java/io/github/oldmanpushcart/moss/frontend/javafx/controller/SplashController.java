@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.frontend.controller;
+package io.github.oldmanpushcart.moss.frontend.javafx.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;

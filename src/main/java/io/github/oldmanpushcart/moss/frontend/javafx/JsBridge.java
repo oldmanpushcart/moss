@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.frontend;
+package io.github.oldmanpushcart.moss.frontend.javafx;
 
 import javafx.application.Platform;
 import javafx.concurrent.Worker;

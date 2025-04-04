@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import io.github.oldmanpushcart.moss.frontend.view.AttachmentListView?>
-<?import io.github.oldmanpushcart.moss.frontend.view.UploaderListView?>
+<?import io.github.oldmanpushcart.moss.frontend.javafx.view.AttachmentListView?>
+<?import io.github.oldmanpushcart.moss.frontend.javafx.view.UploaderListView?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <AnchorPane prefHeight="800.0" prefWidth="600.0"
             xmlns="http://javafx.com/javafx/17.0.12"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="io.github.oldmanpushcart.moss.frontend.controller.chat.ChatController">
+            fx:controller="io.github.oldmanpushcart.moss.frontend.javafx.controller.chat.ChatController">
 
     <BorderPane layoutX="209.0" layoutY="69.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0"
                 AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">

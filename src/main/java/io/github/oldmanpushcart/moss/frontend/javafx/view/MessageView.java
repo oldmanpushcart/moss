@@ -1,7 +1,7 @@
-package io.github.oldmanpushcart.moss.frontend.view;
+package io.github.oldmanpushcart.moss.frontend.javafx.view;
 
-import io.github.oldmanpushcart.moss.backend.commonmark.extension.VideoLinkHtmlExtension;
-import io.github.oldmanpushcart.moss.frontend.JsBridge;
+import io.github.oldmanpushcart.moss.frontend.commonmark.extension.VideoLinkHtmlExtension;
+import io.github.oldmanpushcart.moss.frontend.javafx.JsBridge;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;

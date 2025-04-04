@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.util;
+package io.github.oldmanpushcart.moss.frontend.util;
 
 import javafx.application.Platform;
 

@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.frontend.controller.chat;
+package io.github.oldmanpushcart.moss.frontend.javafx.controller.chat;
 
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;

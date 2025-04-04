@@ -1,6 +1,6 @@
 package io.github.oldmanpushcart.moss.frontend;
 
-import io.github.oldmanpushcart.moss.frontend.view.MessageView;
+import io.github.oldmanpushcart.moss.frontend.javafx.view.MessageView;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;

@@ -1,12 +1,12 @@
-package io.github.oldmanpushcart.moss.frontend.controller.chat;
+package io.github.oldmanpushcart.moss.frontend.javafx.controller.chat;
 
 import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
 import io.github.oldmanpushcart.moss.backend.memory.Memory;
 import io.github.oldmanpushcart.moss.backend.uploader.Uploader;
-import io.github.oldmanpushcart.moss.frontend.view.AttachmentListView;
-import io.github.oldmanpushcart.moss.frontend.view.MessageView;
-import io.github.oldmanpushcart.moss.frontend.view.UploaderListView;
+import io.github.oldmanpushcart.moss.frontend.javafx.view.AttachmentListView;
+import io.github.oldmanpushcart.moss.frontend.javafx.view.MessageView;
+import io.github.oldmanpushcart.moss.frontend.javafx.view.UploaderListView;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;

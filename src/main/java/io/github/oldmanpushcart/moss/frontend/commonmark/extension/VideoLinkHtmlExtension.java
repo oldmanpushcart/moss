@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.backend.commonmark.extension;
+package io.github.oldmanpushcart.moss.frontend.commonmark.extension;
 
 
 import org.commonmark.Extension;

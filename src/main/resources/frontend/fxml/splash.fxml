@@ -12,7 +12,7 @@
 <AnchorPane
         xmlns="http://javafx.com/javafx/17.0.12"
         xmlns:fx="http://javafx.com/fxml/1"
-        fx:controller="io.github.oldmanpushcart.moss.frontend.controller.SplashController">
+        fx:controller="io.github.oldmanpushcart.moss.frontend.javafx.controller.SplashController">
     <VBox prefHeight="359.0" prefWidth="561.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
           AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <ImageView fitHeight="374.0" fitWidth="561.0" pickOnBounds="true" preserveRatio="true">

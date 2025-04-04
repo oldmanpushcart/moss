@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.frontend.view;
+package io.github.oldmanpushcart.moss.frontend.javafx.view;
 
 import io.github.oldmanpushcart.moss.backend.uploader.Uploader;
 import javafx.beans.property.ObjectProperty;
