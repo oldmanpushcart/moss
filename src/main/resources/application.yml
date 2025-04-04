@@ -16,45 +16,14 @@ spring:
       mode: always
       schema-locations: classpath:infra/sql/schema.sql
 
+  config:
+    import: file:./cfg/moss.yml
+
+logging:
+  config: file:./cfg/logback.xml
+
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
   mapper-locations: classpath:infra/mapper/*.xml
   type-handlers-package: io.github.oldmanpushcart.moss.infra.ibatis.type
-
-moss:
-  infra:
-
-    # 对话记忆体
-    memory:
-      max-tokens: 100000
-      max-count: 1000
-      duration: 6h
-
-    # 文件下载
-    downloader:
-      location: ./data/downloads
-
-    # 文件上传
-    uploader:
-      oss-expires-duration: 48h
-      clean-cron-express: 0 */5 * * * ?
-      clean-batch-size: 100
-      clean-queue-capacity: 1000
-
-    # 通义千问
-    dashscope:
-      api-key: ${DASHSCOPE_AK}
-      http:
-        connect-timeout: 30s
-        read-timeout: 30s
-        write-timeout: 30s
-        ping-interval: 10s
-
-    # 高德地图
-    amap:
-      api-key: ${AMAP_MAPS_API_KEY}
-      http:
-        connect-timeout: 30s
-        read-timeout: 30s
-        write-timeout: 30s

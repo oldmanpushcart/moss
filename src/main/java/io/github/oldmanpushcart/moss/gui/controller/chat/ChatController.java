@@ -4,7 +4,7 @@ import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.moss.gui.view.AttachmentListView;
 import io.github.oldmanpushcart.moss.gui.view.MessageView;
 import io.github.oldmanpushcart.moss.gui.view.UploaderListView;
-import io.github.oldmanpushcart.moss.infra.memory.Memory;
+import io.github.oldmanpushcart.moss.infra.memory.MemoryFragment;
 import io.github.oldmanpushcart.moss.infra.uploader.Uploader;
 import io.github.oldmanpushcart.moss.manager.MossChatManager;
 import javafx.animation.Interpolator;
@@ -19,11 +19,13 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
@@ -59,15 +61,16 @@ public class ChatController {
     @FXML
     private ToggleButton enterToggleButton;
 
+    @FXML
+    private Pane controlPane;
+
     private final AtomicBoolean autoScrollToBottomRef = new AtomicBoolean(true);
     private final MossChatManager mossChatManager;
-    private final Memory memory;
     private final Uploader uploader;
 
     @Autowired
-    public ChatController(MossChatManager mossChatManager, DashscopeClient dashscope, Memory memory, Uploader uploader) {
+    public ChatController(MossChatManager mossChatManager, DashscopeClient dashscope, Uploader uploader) {
         this.mossChatManager = mossChatManager;
-        this.memory = memory;
         this.uploader = uploader;
     }
 
@@ -113,27 +116,6 @@ public class ChatController {
         // 绑定自动滚动
         bindingMessagesScrollPaneAutoScrollToBottom();
 
-        // 加载历史消息
-        loadingMessages();
-
-    }
-
-    // 从记忆体中加载历史消息
-    private void loadingMessages() {
-        memory.recall().forEach(fragment -> {
-            final var inputText = fragment.requestMessage().text();
-            messagesBox.getChildren()
-                    .add(new MessageView() {{
-                        setContent(inputText);
-                        setButtonBarEnabled(false);
-                    }});
-            messagesBox.getChildren()
-                    .add(new MessageView() {{
-                        setContent(fragment.responseMessage().text());
-                        setButtonBarEnabled(true);
-                        setRedoButtonEnabled(false);
-                    }});
-        });
     }
 
     // 绑定滚动条自动滚动
@@ -194,6 +176,41 @@ public class ChatController {
                 .setOnDeleteAction(entries ->
                         entries.forEach(entry -> uploader.delete(entry.entryId())))
                 .load();
+    }
+
+
+    /**
+     * 加载历史消息
+     */
+    public void loadingMemory(List<MemoryFragment> fragments) {
+        fragments.forEach(fragment -> {
+            final var inputText = fragment.requestMessage().text();
+            messagesBox.getChildren()
+                    .add(new MessageView() {{
+                        setContent(inputText);
+                        setButtonBarEnabled(false);
+                    }});
+            messagesBox.getChildren()
+                    .add(new MessageView() {{
+                        setContent(fragment.responseMessage().text());
+                        setButtonBarEnabled(true);
+                        setRedoButtonEnabled(false);
+                    }});
+        });
+    }
+
+    /**
+     * 锁定操作面板
+     */
+    public void lockControlPane() {
+        controlPane.setDisable(true);
+    }
+
+    /**
+     * 解锁操作面板
+     */
+    public void unlockControlPane() {
+        controlPane.setDisable(false);
     }
 
 }

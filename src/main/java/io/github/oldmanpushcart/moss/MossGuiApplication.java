@@ -3,6 +3,8 @@ package io.github.oldmanpushcart.moss;
 import io.github.oldmanpushcart.moss.gui.controller.SplashController;
 import io.github.oldmanpushcart.moss.gui.controller.chat.ChatController;
 import io.github.oldmanpushcart.moss.infra.boot.BootEvent;
+import io.github.oldmanpushcart.moss.infra.memory.Memory;
+import io.github.oldmanpushcart.moss.util.PlatformUtils;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -97,30 +99,48 @@ public class MossGuiApplication extends Application {
 
     // 显示主窗口
     private CompletionStage<?> displayMainStage(Stage stage) {
-        final var completed = new CompletableFuture<>();
-        Platform.runLater(() -> {
-            try {
+        final var chatController = springCtx.getBean(ChatController.class);
+        return PlatformUtils
 
-                final var loader = new FXMLLoader(getClass().getResource("/gui/fxml/chat/chat.fxml"));
-                loader.setControllerFactory(param -> springCtx.getBean(ChatController.class));
-                loader.load();
+                // 加载主界面
+                .runOnPlatform(() -> {
 
-                stage.getIcons().add(ICON_IMAGE);
-                stage.setTitle("MOSS - 人类的渺小，是伟大的开始！");
-                stage.setScene(new Scene(loader.getRoot()));
-                stage.initStyle(StageStyle.DECORATED);
-                stage.setResizable(true);
-                stage.centerOnScreen();
-                stage.setWidth(1024);
-                stage.setHeight(800);
-                stage.show();
+                    // 加载ChatController
+                    final var loader = new FXMLLoader(getClass().getResource("/gui/fxml/chat/chat.fxml"));
+                    loader.setControllerFactory(clazz -> chatController);
+                    loader.load();
 
-                completed.complete(null);
-            } catch (Throwable ex) {
-                completed.completeExceptionally(ex);
-            }
-        });
-        return completed;
+                    // 锁定操作面板
+                    chatController.lockControlPane();
+
+                    // 渲染主界面
+                    stage.getIcons().add(ICON_IMAGE);
+                    stage.setTitle("MOSS - 人类的渺小，是伟大的开始！");
+                    stage.setScene(new Scene(loader.getRoot()));
+                    stage.initStyle(StageStyle.DECORATED);
+                    stage.setResizable(true);
+                    stage.centerOnScreen();
+                    stage.setWidth(1024);
+                    stage.setHeight(800);
+                    stage.show();
+
+                })
+
+                // 加载记忆体
+                .thenCompose(unused -> {
+                    final var memory = springCtx.getBean(Memory.class);
+                    final var fragments = memory.recall();
+                    return PlatformUtils.runOnPlatform(() -> {
+
+                        // 渲染记忆体内容
+                        chatController.loadingMemory(fragments);
+
+                        // 解锁操作面板
+                        chatController.unlockControlPane();
+
+                    });
+                });
+
     }
 
 

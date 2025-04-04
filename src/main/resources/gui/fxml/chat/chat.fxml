@@ -22,7 +22,7 @@
             </ScrollPane>
         </center>
         <bottom>
-            <VBox BorderPane.alignment="CENTER">
+            <VBox fx:id="controlPane" BorderPane.alignment="CENTER">
                 <UploaderListView fx:id="uploaderListView"/>
                 <AttachmentListView fx:id="attachmentListView"/>
                 <ToolBar prefHeight="40.0">
