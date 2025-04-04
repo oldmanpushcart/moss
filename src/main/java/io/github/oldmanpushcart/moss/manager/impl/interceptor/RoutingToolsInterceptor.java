@@ -12,18 +12,15 @@ import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFunctionT
 import io.github.oldmanpushcart.moss.util.CommonUtils;
 import io.github.oldmanpushcart.moss.util.JacksonUtils;
 import io.reactivex.rxjava3.core.Flowable;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.CompletableFuture.completedStage;
 
 /**
@@ -79,15 +76,22 @@ public class RoutingToolsInterceptor implements MossChatInterceptor {
                             ));
 
                     final var toolsJson = JacksonUtils.toJson(toolsMap);
-                    try {
-                        final var loader = RoutingToolsInterceptor.class.getClassLoader();
-                        final var choiceToolsPrompt = IOUtils
-                                .resourceToString("prompt/choice-tools-prompt.md", UTF_8, loader)
-                                .formatted(toolsJson);
-                        builder.addMessage(Message.ofSystem(choiceToolsPrompt));
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+
+                    builder.addMessage(Message.ofSystem("""
+                            你是一个智能函数路由助手，负责根据用户的输入上下文选择最合适的函数进行调用。
+                            
+                            ### 行为要求
+                            - 需要提取出函数名并组成字符串数组
+                            - 请仅输出JSON
+                            - 不要以markdown的格式输出
+                            - 不要输出其他无关内容
+                            
+                            ### 输出格式
+                            ['函数1','函数2‘，’函数3']
+                            
+                            ### 函数列表
+                            %s
+                            """.formatted(toolsJson)));
 
                 })
                 .build();
