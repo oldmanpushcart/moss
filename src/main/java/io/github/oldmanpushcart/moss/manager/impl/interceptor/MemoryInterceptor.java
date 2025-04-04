@@ -4,9 +4,8 @@ import io.github.oldmanpushcart.dashscope4j.api.chat.ChatOptions;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatRequest;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatResponse;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
-import io.github.oldmanpushcart.moss.manager.MossChatContext;
 import io.github.oldmanpushcart.moss.infra.memory.Memory;
-import io.github.oldmanpushcart.moss.infra.memory.MemoryFragment;
+import io.github.oldmanpushcart.moss.manager.MossChatManager;
 import io.reactivex.rxjava3.core.Flowable;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +54,7 @@ public class MemoryInterceptor implements MossChatInterceptor {
 
                         })
                         .doOnComplete(() -> {
-                            final var fragment = new MemoryFragment() {{
+                            final var fragment = new Memory.Fragment() {{
                                 requestMessage(requestMessage);
                                 responseMessage(Message.ofAi(stringBuf.toString()));
                             }};
@@ -64,7 +63,7 @@ public class MemoryInterceptor implements MossChatInterceptor {
     }
 
     private List<Message> recall(ChatRequest request) {
-        final var context = request.context(MossChatContext.class);
+        final var context = request.context(MossChatManager.Context.class);
         final var fragments = null != context && null != context.getTimeline()
                 ? memory.recall(context.getTimeline())
                 : memory.recall();

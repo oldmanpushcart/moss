@@ -5,7 +5,6 @@ import io.github.oldmanpushcart.dashscope4j.util.LocalTokenizerUtils;
 import io.github.oldmanpushcart.dashscope4j.util.MessageCodec;
 import io.github.oldmanpushcart.moss.infra.memory.Memory;
 import io.github.oldmanpushcart.moss.infra.memory.MemoryConfig;
-import io.github.oldmanpushcart.moss.infra.memory.MemoryFragment;
 import io.github.oldmanpushcart.moss.infra.memory.internal.dao.MemoryFragmentDao;
 import io.github.oldmanpushcart.moss.infra.memory.internal.domain.MemoryFragmentDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,12 +71,12 @@ public class MemoryImpl implements Memory {
     }
 
     @Override
-    public List<MemoryFragment> recall() {
+    public List<Fragment> recall() {
         return unmodifiableList(primaryCache.elements());
     }
 
     @Override
-    public List<MemoryFragment> recall(Long maxFragmentId) {
+    public List<Fragment> recall(Long maxFragmentId) {
         if (Objects.isNull(maxFragmentId)) {
             return recall();
         }
@@ -103,7 +102,7 @@ public class MemoryImpl implements Memory {
     }
 
     @Override
-    public void saveOrUpdate(MemoryFragment fragment) {
+    public void saveOrUpdate(Fragment fragment) {
 
         final var mergedDO = new MemoryFragmentDO()
                 .setFragmentId(fragment.fragmentId())

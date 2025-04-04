@@ -4,7 +4,6 @@ import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.dashscope4j.Model;
 import io.github.oldmanpushcart.dashscope4j.base.files.FileMeta;
 import io.github.oldmanpushcart.dashscope4j.base.files.Purpose;
-import io.github.oldmanpushcart.moss.infra.uploader.UploadEntry;
 import io.github.oldmanpushcart.moss.infra.uploader.Uploader;
 import io.github.oldmanpushcart.moss.infra.uploader.UploaderConfig;
 import io.github.oldmanpushcart.moss.infra.uploader.internal.dao.UploadEntryDao;
@@ -47,7 +46,7 @@ public class UploaderImpl implements Uploader {
     }
 
     @Override
-    public CompletionStage<UploadEntry> upload(Model model, URI resource) {
+    public CompletionStage<Entry> upload(Model model, URI resource) {
 
         final var uploadKey = computeUploadKey(model, resource);
         final var existDO = store.getByUploadKey(uploadKey);
@@ -106,7 +105,7 @@ public class UploaderImpl implements Uploader {
     }
 
     @Override
-    public List<UploadEntry> listUploaded() {
+    public List<Entry> listUploaded() {
         return store.queryByStatus(STATUS_UPLOADED)
                 .stream()
                 .map(UploadEntryHelper::toUploadEntry)

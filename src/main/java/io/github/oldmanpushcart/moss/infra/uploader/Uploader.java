@@ -3,6 +3,7 @@ package io.github.oldmanpushcart.moss.infra.uploader;
 import io.github.oldmanpushcart.dashscope4j.Model;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
@@ -18,14 +19,14 @@ public interface Uploader {
      * @param source 资源URI
      * @return 缓存条目
      */
-    CompletionStage<UploadEntry> upload(Model model, URI source);
+    CompletionStage<Entry> upload(Model model, URI source);
 
     /**
      * 列出所有已上传缓存条目
      *
      * @return 已上传缓存条目集合
      */
-    List<UploadEntry> listUploaded();
+    List<Entry> listUploaded();
 
     /**
      * 删除缓存条目
@@ -44,4 +45,27 @@ public interface Uploader {
      */
     boolean delete(Model model, URI source);
 
+    /**
+     * 上传条目
+     *
+     * @param entryId 条目ID
+     * @param mime    资源类型
+     * @param length  资源大小
+     * @param model   模型名称
+     * @param source  资源地址
+     * @param upload  上传地址
+     */
+    record Entry(
+            long entryId,
+            String mime,
+            long length,
+            String model,
+            URI source,
+            URI upload,
+            Instant expiresAt,
+            Instant createdAt,
+            Instant updatedAt
+    ) {
+
+    }
 }

@@ -6,6 +6,9 @@ open module moss {
     requires dashscope4j;
     requires io.reactivex.rxjava3;
     requires okhttp3;
+    requires org.mybatis;
+    requires org.xerial.sqlitejdbc;
+    requires com.fasterxml.jackson.databind;
 
     requires spring.boot.autoconfigure;
     requires spring.context;
@@ -21,13 +24,11 @@ open module moss {
     requires org.commonmark;
     requires org.commonmark.ext.gfm.tables;
 
-    requires org.mybatis;
-    requires org.xerial.sqlitejdbc;
     requires jakarta.annotation;
+    requires jakarta.validation;
+
     requires org.apache.commons.io;
     requires org.apache.commons.text;
     requires org.apache.commons.lang3;
-    requires com.fasterxml.jackson.databind;
-    requires jakarta.validation;
 
 }

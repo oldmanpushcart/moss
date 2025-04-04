@@ -11,7 +11,6 @@ import io.github.oldmanpushcart.dashscope4j.api.video.generation.ImageGenVideoOp
 import io.github.oldmanpushcart.dashscope4j.api.video.generation.ImageGenVideoRequest;
 import io.github.oldmanpushcart.dashscope4j.task.Task;
 import io.github.oldmanpushcart.moss.infra.downloader.Downloader;
-import io.github.oldmanpushcart.moss.infra.uploader.UploadEntry;
 import io.github.oldmanpushcart.moss.infra.uploader.Uploader;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +57,7 @@ public class DashscopeImage2VideoFunction
 
     private CompletionStage<URI> upload(URI resource) {
         return uploader.upload(GenImageModel.WANX_V1, resource)
-                .thenApply(UploadEntry::upload);
+                .thenApply(Uploader.Entry::upload);
     }
 
     public record Parameter(

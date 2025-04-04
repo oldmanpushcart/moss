@@ -1,6 +1,6 @@
 package io.github.oldmanpushcart.moss.gui.view;
 
-import io.github.oldmanpushcart.moss.infra.uploader.UploadEntry;
+import io.github.oldmanpushcart.moss.infra.uploader.Uploader;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -69,8 +69,8 @@ public class UploaderListView extends AnchorPane {
     @FXML
     private Button flushButton;
 
-    private Supplier<List<UploadEntry>> loadAction;
-    private Consumer<List<UploadEntry>> deleteAction;
+    private Supplier<List<Uploader.Entry>> loadAction;
+    private Consumer<List<Uploader.Entry>> deleteAction;
 
     public UploaderListView() {
         final var loader = new FXMLLoader(getClass().getResource("/gui/fxml/chat/uploader-list-view.fxml"));
@@ -89,7 +89,7 @@ public class UploaderListView extends AnchorPane {
      * @param action 删除动作
      * @return this
      */
-    public UploaderListView setOnDeleteAction(Consumer<List<UploadEntry>> action) {
+    public UploaderListView setOnDeleteAction(Consumer<List<Uploader.Entry>> action) {
         this.deleteAction = action;
         return this;
     }
@@ -100,7 +100,7 @@ public class UploaderListView extends AnchorPane {
      * @param action 加载动作
      * @return this
      */
-    public UploaderListView setOnLoadAction(Supplier<List<UploadEntry>> action) {
+    public UploaderListView setOnLoadAction(Supplier<List<Uploader.Entry>> action) {
         this.loadAction = action;
         return this;
     }
@@ -247,7 +247,7 @@ public class UploaderListView extends AnchorPane {
     @AllArgsConstructor
     private final class Item {
 
-        private final UploadEntry entry;
+        private final Uploader.Entry entry;
 
         private final ObjectProperty<CheckBox> checkBoxProperty = new SimpleObjectProperty<>(
                 new CheckBox() {{

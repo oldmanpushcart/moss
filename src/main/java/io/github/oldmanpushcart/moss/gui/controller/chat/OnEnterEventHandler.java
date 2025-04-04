@@ -4,7 +4,6 @@ import io.github.oldmanpushcart.dashscope4j.api.chat.*;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.moss.gui.view.AttachmentListView;
 import io.github.oldmanpushcart.moss.gui.view.MessageView;
-import io.github.oldmanpushcart.moss.manager.MossChatContext;
 import io.github.oldmanpushcart.moss.manager.MossChatManager;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import javafx.application.Platform;
@@ -69,8 +68,8 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                     .add(responseMessageView);
 
             final var request = ChatRequest.newBuilder()
-                    .context(MossChatContext.class,
-                            new MossChatContext() {{
+                    .context(MossChatManager.Context.class,
+                            new MossChatManager.Context() {{
                                 setAttachments(selectedAttachments());
                             }})
                     .context(MossChatRenderingContext.class,
@@ -96,12 +95,12 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                         final var newRequest = ChatRequest.newBuilder(request)
                                 .model(decideChatModel())
                                 .building(builder -> {
-                                    final var context = request.context(MossChatContext.class)
+                                    final var context = request.context(MossChatManager.Context.class)
                                             .setAttachments(selectedAttachments());
                                     final var renderingContext = request.context(MossChatRenderingContext.class)
                                             .setSource(e)
                                             .cleanDisplayBuf();
-                                    builder.context(MossChatContext.class, context);
+                                    builder.context(MossChatManager.Context.class, context);
                                     builder.context(MossChatRenderingContext.class, renderingContext);
                                 })
                                 .build();

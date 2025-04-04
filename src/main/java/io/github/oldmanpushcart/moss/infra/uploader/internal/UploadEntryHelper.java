@@ -2,13 +2,13 @@ package io.github.oldmanpushcart.moss.infra.uploader.internal;
 
 import io.github.oldmanpushcart.dashscope4j.Model;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatModel;
-import io.github.oldmanpushcart.moss.infra.uploader.UploadEntry;
+import io.github.oldmanpushcart.moss.infra.uploader.Uploader;
 import io.github.oldmanpushcart.moss.infra.uploader.internal.domain.UploadEntryDO;
 
 class UploadEntryHelper {
 
-    public static UploadEntry toUploadEntry(UploadEntryDO entryDO) {
-        return new UploadEntry(
+    public static Uploader.Entry toUploadEntry(UploadEntryDO entryDO) {
+        return new Uploader.Entry(
                 entryDO.getEntryId(),
                 entryDO.getMime(),
                 entryDO.getLength(),

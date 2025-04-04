@@ -4,7 +4,7 @@ import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.moss.gui.view.AttachmentListView;
 import io.github.oldmanpushcart.moss.gui.view.MessageView;
 import io.github.oldmanpushcart.moss.gui.view.UploaderListView;
-import io.github.oldmanpushcart.moss.infra.memory.MemoryFragment;
+import io.github.oldmanpushcart.moss.infra.memory.Memory;
 import io.github.oldmanpushcart.moss.infra.uploader.Uploader;
 import io.github.oldmanpushcart.moss.manager.MossChatManager;
 import javafx.animation.Interpolator;
@@ -182,7 +182,7 @@ public class ChatController {
     /**
      * 加载历史消息
      */
-    public void loadingMemory(List<MemoryFragment> fragments) {
+    public void loadingMemory(List<Memory.Fragment> fragments) {
         fragments.forEach(fragment -> {
             final var inputText = fragment.requestMessage().text();
             messagesBox.getChildren()

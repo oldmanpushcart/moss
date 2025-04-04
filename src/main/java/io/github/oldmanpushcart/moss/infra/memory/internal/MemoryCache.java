@@ -1,7 +1,7 @@
 package io.github.oldmanpushcart.moss.infra.memory.internal;
 
+import io.github.oldmanpushcart.moss.infra.memory.Memory;
 import io.github.oldmanpushcart.moss.infra.memory.MemoryConfig;
-import io.github.oldmanpushcart.moss.infra.memory.MemoryFragment;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ class MemoryCache {
     private final MemoryConfig config;
 
     // 存储记忆片段排序队列
-    private final TreeSet<MemoryFragment> tree = new TreeSet<>();
+    private final TreeSet<Memory.Fragment> tree = new TreeSet<>();
 
     // 缓存中所有记忆片段的总token数
     private volatile long tokens = 0L;
@@ -54,7 +54,7 @@ class MemoryCache {
     /*
      * 测试如果添加是否会溢出
      */
-    private boolean testOverflow(MemoryFragment fragment) {
+    private boolean testOverflow(Memory.Fragment fragment) {
         return isNull(config)
                || testIfNonNull(config.getMaxCount(), v -> tree.size() + 1 >= v)
                || testIfNonNull(config.getMaxTokens(), v -> tokens + fragment.tokens() >= v)
@@ -66,7 +66,7 @@ class MemoryCache {
      *
      * @param fragment 记忆片段
      */
-    public synchronized void append(MemoryFragment fragment) {
+    public synchronized void append(Memory.Fragment fragment) {
         tree.add(fragment);
         tokens += fragment.tokens();
         earliest = min(earliest, fragment.createdAt());
@@ -90,7 +90,7 @@ class MemoryCache {
     /**
      * @return 获取所有记忆片段
      */
-    public synchronized List<MemoryFragment> elements() {
+    public synchronized List<Memory.Fragment> elements() {
         return new ArrayList<>(tree);
     }
 
@@ -120,7 +120,7 @@ class MemoryCache {
          *
          * @return 记忆片段列表
          */
-        List<MemoryFragment> load();
+        List<Memory.Fragment> load();
 
     }
 
