@@ -7,10 +7,11 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 
 @Data
-@ConfigurationProperties(prefix = "moss.infra.amap")
+@ConfigurationProperties(prefix = "moss.infra.extra.amap")
 @Component
 public class AmapConfig {
 
+    private boolean enabled = false;
     private String apiKey;
     private HttpConfig http = new HttpConfig();
 

@@ -42,6 +42,11 @@ public class AmapLocationMapFunction implements ChatFunction<AmapLocationMapFunc
     private Downloader downloader;
 
     @Override
+    public boolean isEnabled() {
+        return config.isEnabled();
+    }
+
+    @Override
     public CompletionStage<Result> call(Caller caller, Parameter parameter) {
         final var filename = "amap-staticmap-%s.png".formatted(UUID.randomUUID());
         final var apiUrl = requireNonNull(HttpUrl.parse("https://restapi.amap.com/v3/staticmap"))

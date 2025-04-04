@@ -38,6 +38,11 @@ public class AmapGeocodeRegeoFunction implements ChatFunction<AmapGeocodeRegeoFu
     private OkHttpClient amapHttp;
 
     @Override
+    public boolean isEnabled() {
+        return config.isEnabled();
+    }
+
+    @Override
     public CompletionStage<Result> call(Caller caller, Parameter parameter) {
         final var apiUrl = requireNonNull(HttpUrl.parse("https://restapi.amap.com/v3/geocode/regeo"))
                 .newBuilder()

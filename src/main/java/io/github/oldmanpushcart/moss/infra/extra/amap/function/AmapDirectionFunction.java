@@ -39,6 +39,11 @@ public class AmapDirectionFunction implements ChatFunction<AmapDirectionFunction
     private OkHttpClient amapHttp;
 
     @Override
+    public boolean isEnabled() {
+        return config.isEnabled();
+    }
+
+    @Override
     public CompletionStage<Result> call(Caller caller, Parameter parameter) {
         final var apiUrl = requireNonNull(HttpUrl.parse("https://restapi.amap.com/v5/direction/"+parameter.mode().toString().toLowerCase()))
                 .newBuilder()

@@ -32,10 +32,14 @@ moss:
         write-timeout: 30s
         ping-interval: 10s
 
-    # 高德地图
-    amap:
-      api-key: ${AMAP_MAPS_API_KEY}
-      http:
-        connect-timeout: 30s
-        read-timeout: 30s
-        write-timeout: 30s
+    # 扩展插件
+    extra:
+
+      # 高德地图扩展
+      amap:
+        enabled: true
+        api-key: ${AMAP_MAPS_API_KEY}
+        http:
+          connect-timeout: 30s
+          read-timeout: 30s
+          write-timeout: 30s
