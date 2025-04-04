@@ -23,11 +23,11 @@ open module moss {
 
     requires org.mybatis;
     requires org.xerial.sqlitejdbc;
-    requires annotations;
     requires jakarta.annotation;
     requires org.apache.commons.io;
     requires org.apache.commons.text;
     requires org.apache.commons.lang3;
     requires com.fasterxml.jackson.databind;
+    requires jakarta.validation;
 
 }

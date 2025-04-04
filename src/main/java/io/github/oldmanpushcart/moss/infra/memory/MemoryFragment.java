@@ -1,9 +1,9 @@
 package io.github.oldmanpushcart.moss.infra.memory;
 
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 

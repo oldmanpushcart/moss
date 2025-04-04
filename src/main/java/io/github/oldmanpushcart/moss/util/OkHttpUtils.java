@@ -1,10 +1,10 @@
 package io.github.oldmanpushcart.moss.util;
 
+import jakarta.validation.constraints.NotNull;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Objects;
