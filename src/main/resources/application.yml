@@ -14,7 +14,7 @@ spring:
   sql:
     init:
       mode: always
-      schema-locations: classpath:infra/sql/schema.sql
+      schema-locations: classpath:backend/sql/schema.sql
 
   config:
     import: file:./cfg/moss.yml
@@ -25,5 +25,5 @@ logging:
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
-  mapper-locations: classpath:infra/mapper/*.xml
-  type-handlers-package: io.github.oldmanpushcart.moss.infra.ibatis.type
+  mapper-locations: classpath:backend/mapper/*.xml
+  type-handlers-package: io.github.oldmanpushcart.moss.backend.ibatis.type

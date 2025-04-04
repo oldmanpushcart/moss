@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.oldmanpushcart.moss.backend.uploader.internal.dao.UploadEntryDao">
+    
+    <insert id="insert"
+            useGeneratedKeys="true"
+            keyProperty="entryId"
+            keyColumn="ENTRY_ID"
+            parameterType="io.github.oldmanpushcart.moss.backend.uploader.internal.domain.UploadEntryDO">
+        INSERT INTO UPLOAD_ENTRIES
+        (
+            MODEL,
+            MIME,
+            LENGTH,
+            SOURCE,
+            STATUS,
+            EXPIRES_AT,
+            CREATED_AT,
+            UPDATED_AT,
+            VERSION
+        )
+        VALUES (
+            #{model},
+            #{mime},
+            #{length},
+            #{source},
+            #{status},
+            #{expiresAt},
+            strftime('%s', 'now') || substr(strftime('%f', 'now'), 4),
+            strftime('%s', 'now') || substr(strftime('%f', 'now'), 4),
+            #{version}
+        )
+    </insert>
+
+    <select id="getByUploadKey"
+            resultType="io.github.oldmanpushcart.moss.backend.uploader.internal.domain.UploadEntryDO">
+        SELECT
+            *
+        FROM UPLOAD_ENTRIES
+        WHERE
+            UPLOAD_KEY = #{uploadKey}
+        LIMIT 1
+    </select>
+
+    <select id="getById" resultType="io.github.oldmanpushcart.moss.backend.uploader.internal.domain.UploadEntryDO">
+        SELECT
+            *
+        FROM UPLOAD_ENTRIES
+        WHERE
+            ENTRY_ID = #{entryId}
+        LIMIT 1
+    </select>
+
+    <select id="queryForClean"
+            resultType="io.github.oldmanpushcart.moss.backend.uploader.internal.domain.UploadEntryDO">
+        SELECT
+            *
+        FROM UPLOAD_ENTRIES
+        WHERE
+            STATUS = -1
+            <if test="true">
+                <![CDATA[
+                OR EXPIRES_AT < strftime('%s', 'now') || substr(strftime('%f', 'now'), 4)
+                ]]>
+            </if>
+        LIMIT #{limit}
+    </select>
+
+    <select id="queryByStatus"
+            resultType="io.github.oldmanpushcart.moss.backend.uploader.internal.domain.UploadEntryDO">
+        SELECT
+            *
+        FROM UPLOAD_ENTRIES
+        WHERE
+            STATUS = #{status}
+    </select>
+
+    <update id="update">
+        UPDATE UPLOAD_ENTRIES
+        <set>
+            <if test="model != null">MODEL = #{model},</if>
+            <if test="mime != null">MIME = #{mime},</if>
+            <if test="length != null">LENGTH = #{length},</if>
+            <if test="source != null">SOURCE = #{source},</if>
+            <if test="upload != null">UPLOAD = #{upload},</if>
+            <if test="uploadKey != null">UPLOAD_KEY = #{uploadKey},</if>
+            <if test="status != null">STATUS = #{status},</if>
+            <if test="expiresAt != null">EXPIRES_AT = #{expiresAt},</if>
+            UPDATED_AT = strftime('%s', 'now') || substr(strftime('%f', 'now'), 4),
+            VERSION = VERSION + 1
+        </set>
+        WHERE
+            ENTRY_ID = #{entryId}
+            AND VERSION = #{version}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM UPLOAD_ENTRIES
+        WHERE
+            ENTRY_ID = #{entryId}
+    </delete>
+
+</mapper>

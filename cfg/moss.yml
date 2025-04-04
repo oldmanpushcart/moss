@@ -1,10 +1,10 @@
 moss:
 
-  # 系统提示词位置
-  system-prompt-location: ./cfg/system-prompt.md
-
   # 基础架构配置
-  infra:
+  backend:
+
+    # 系统提示词位置
+    system-prompt-location: ./cfg/system-prompt.md
 
     # 对话记忆体
     memory:

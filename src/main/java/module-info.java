@@ -1,6 +1,8 @@
 open module moss {
 
     requires static lombok;
+    requires static jakarta.annotation;
+    requires static jakarta.validation;
 
     requires org.slf4j;
     requires dashscope4j;
@@ -10,10 +12,10 @@ open module moss {
     requires org.xerial.sqlitejdbc;
     requires com.fasterxml.jackson.databind;
 
+    requires spring.boot;
     requires spring.boot.autoconfigure;
     requires spring.context;
     requires spring.beans;
-    requires spring.boot;
     requires spring.core;
 
     requires javafx.fxml;
@@ -23,9 +25,6 @@ open module moss {
 
     requires org.commonmark;
     requires org.commonmark.ext.gfm.tables;
-
-    requires jakarta.annotation;
-    requires jakarta.validation;
 
     requires org.apache.commons.io;
     requires org.apache.commons.text;

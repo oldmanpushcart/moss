@@ -43,7 +43,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
                 <configuration>
-                    <mainClass>io.github.oldmanpushcart.moss.MossGuiApplication</mainClass>
+                    <mainClass>io.github.oldmanpushcart.moss.MossApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>
