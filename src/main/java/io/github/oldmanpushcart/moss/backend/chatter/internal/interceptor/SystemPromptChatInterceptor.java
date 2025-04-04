@@ -3,7 +3,7 @@ package io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatRequest;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatResponse;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
-import io.github.oldmanpushcart.moss.backend.BackendConfig;
+import io.github.oldmanpushcart.moss.backend.chatter.ChatterConfig;
 import io.reactivex.rxjava3.core.Flowable;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Component
 public class SystemPromptChatInterceptor implements ChatInterceptor {
 
-    private final BackendConfig config;
+    private final ChatterConfig config;
 
     @Override
     public CompletionStage<Flowable<ChatResponse>> intercept(Chain chain) {

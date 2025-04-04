@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.backend;
+package io.github.oldmanpushcart.moss.backend.chatter;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -8,9 +8,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Data
-@ConfigurationProperties(prefix = "moss.backend")
+@ConfigurationProperties(prefix = "moss.backend.chatter")
 @Component
-public class BackendConfig {
+public class ChatterConfig {
 
     /**
      * 系统提示词位置
