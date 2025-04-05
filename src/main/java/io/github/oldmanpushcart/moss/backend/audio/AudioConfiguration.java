@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.frontend.audio;
+package io.github.oldmanpushcart.moss.backend.audio;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;

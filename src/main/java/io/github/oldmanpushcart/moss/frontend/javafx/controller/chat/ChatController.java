@@ -1,10 +1,9 @@
 package io.github.oldmanpushcart.moss.frontend.javafx.controller.chat;
 
-import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
+import io.github.oldmanpushcart.moss.backend.audio.Speaker;
 import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
 import io.github.oldmanpushcart.moss.backend.memory.Memory;
 import io.github.oldmanpushcart.moss.backend.uploader.Uploader;
-import io.github.oldmanpushcart.moss.frontend.audio.SourceDataLineChannel;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.AttachmentListView;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.MessageView;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.UploaderListView;
@@ -24,12 +23,14 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Component
 public class ChatController {
 
@@ -66,8 +67,7 @@ public class ChatController {
     @FXML
     private Pane controlPane;
 
-    private final SourceDataLineChannel sourceChannel;
-    private final DashscopeClient dashscope;
+    private final Speaker speaker;
     private final Chatter chatter;
     private final Uploader uploader;
 
@@ -75,14 +75,6 @@ public class ChatController {
     private final AtomicBoolean autoScrollToBottomRef = new AtomicBoolean(true);
     private final CompositeDisposableControl speakerControl = new CompositeDisposableControl();
     private final CompositeDisposableControl chatterControl = new CompositeDisposableControl();
-
-    @Autowired
-    public ChatController(SourceDataLineChannel sourceChannel, DashscopeClient dashscope, Chatter chatter, Uploader uploader) {
-        this.sourceChannel = sourceChannel;
-        this.dashscope = dashscope;
-        this.chatter = chatter;
-        this.uploader = uploader;
-    }
 
     @FXML
     private void initialize() {
@@ -134,8 +126,7 @@ public class ChatController {
                         autoSpeakRef,
                         speakerControl,
                         chatterControl,
-                        sourceChannel,
-                        dashscope,
+                        speaker,
                         chatter
                 ));
 
@@ -224,8 +215,7 @@ public class ChatController {
                         getSpeakToggleButton()
                                 .setOnAction(new OnSpeakEventHandler(
                                         speakerControl,
-                                        dashscope,
-                                        sourceChannel,
+                                        speaker,
                                         Flowable.just(fragment.responseMessage().text())
                                 ));
                     }});

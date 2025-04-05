@@ -1,10 +1,8 @@
 package io.github.oldmanpushcart.moss.frontend.javafx.controller.chat;
 
-import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
-import io.github.oldmanpushcart.dashscope4j.api.chat.*;
-import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
+import io.github.oldmanpushcart.dashscope4j.api.chat.ChatResponse;
+import io.github.oldmanpushcart.moss.backend.audio.Speaker;
 import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
-import io.github.oldmanpushcart.moss.frontend.audio.SourceDataLineChannel;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.AttachmentListView;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.MessageView;
 import io.reactivex.rxjava3.core.Flowable;
@@ -41,9 +39,7 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
     private final AtomicBoolean autoSpeakRef;
     private final CompositeDisposableControl speakerControl;
     private final CompositeDisposableControl chatterControl;
-    private final SourceDataLineChannel sourceChannel;
-    private final DashscopeClient dashscope;
-
+    private final Speaker speaker;
     private final Chatter chatter;
 
     @Override
@@ -58,56 +54,33 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
              */
             autoScrollToBottomRef.set(true);
 
-            // 清空输入框并获取文本
-            final var inputText = popInputText();
+            final var chattingContext = new Chatter.Context() {{
+                setAttachments(selectedAttachments());
+            }};
 
-            // 构造请求消息并添加到消息列表
-            messagesBox.getChildren()
-                    .add(new MessageView() {{
-                        setContent(inputText);
-                        setButtonBarEnabled(false);
-                    }});
+            final var renderingContext = new ChatRenderingContext() {{
+                final var inputText = popInputText();
+                setSource(event.getSource());
+                setInputText(inputText);
+                setRequestMessageView(new MessageView() {{
+                    setContent(inputText);
+                    setButtonBarEnabled(false);
+                }});
+                setResponseMessageView(new MessageView() {{
+                    setButtonBarEnabled(false);
+                }});
+            }};
 
             // 构建应答消息并添加到消息列表
-            final var responseMessageView = new MessageView() {{
-                setButtonBarEnabled(false);
-            }};
             messagesBox.getChildren()
-                    .add(responseMessageView);
+                    .addAll(renderingContext.getRequestMessageView(), renderingContext.getResponseMessageView());
 
             // 执行对话
-            onChat(
-                    newChatRequest(event, inputText, responseMessageView),
-                    chatterControl.interruptAndNew()
-            );
+            onChat(chatterControl.interruptAndNew(), renderingContext, chattingContext);
 
         } else {
             chatterControl.interrupt();
         }
-    }
-
-    // 构建对话请求
-    private ChatRequest newChatRequest(ActionEvent event, String inputText, MessageView responseMessageView) {
-        return ChatRequest.newBuilder()
-                .context(Chatter.Context.class,
-                        new Chatter.Context() {{
-                            setAttachments(selectedAttachments());
-                        }})
-                .context(ChatRenderingContext.class,
-                        new ChatRenderingContext() {{
-                            setSource(event.getSource());
-                            setResponseMessageView(responseMessageView);
-                        }})
-                .model(decideChatModel())
-                .option(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true)
-                .option(ChatOptions.ENABLE_WEB_SEARCH, true)
-                .option(ChatOptions.SEARCH_OPTIONS, new ChatSearchOption() {{
-                    forcedSearch(true);
-                    searchStrategy(SearchStrategy.STANDARD);
-                    enableSource();
-                }})
-                .addMessage(Message.ofUser(inputText))
-                .build();
     }
 
     // 获取输入框的文本并清空输入框
@@ -125,17 +98,9 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                 : Collections.emptyList();
     }
 
-    // 决定采用那个对话模型
-    private ChatModel decideChatModel() {
-        return deepThinkingToggleButton.isSelected()
-                ? ChatModel.QWQ_PLUS
-                : ChatModel.QWEN_MAX;
-    }
-
     // 执行对话
-    private void onChat(ChatRequest request, CompositeDisposable dispose) {
+    private void onChat(CompositeDisposable dispose, ChatRenderingContext renderingContext, Chatter.Context chattingContext) {
 
-        final var renderingContext = request.context(ChatRenderingContext.class);
         final var responseMessageView = renderingContext.getResponseMessageView();
 
         Platform.runLater(() -> {
@@ -143,7 +108,7 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
             responseMessageView.setButtonBarEnabled(false);
         });
 
-        chatter.chat(request)
+        chatter.chat(chattingContext, renderingContext.getInputText())
 
                 /*
                  * 这里因为要进行音频播放，所以必须要对流结果进行缓存。
@@ -153,7 +118,7 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
 
                 // 订阅流
                 .thenAccept(responseFlow -> responseFlow
-                        .doOnSubscribe(sub -> renderingResponseMessageViewOnSubscribe(renderingContext, request, responseFlow))
+                        .doOnSubscribe(sub -> renderingResponseMessageViewOnSubscribe(renderingContext, chattingContext, responseFlow))
                         .subscribe(
                                 r -> renderingResponseMessageViewOnNext(renderingContext, r),
                                 ex -> renderingResponseMessageViewOnError(renderingContext, ex),
@@ -171,33 +136,36 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
     }
 
     // 渲染响应消息
-    private void renderingResponseMessageViewOnSubscribe(ChatRenderingContext context, ChatRequest request, Flowable<ChatResponse> responseFlow) {
-        final var responseMessageView = context.getResponseMessageView();
+    private void renderingResponseMessageViewOnSubscribe(ChatRenderingContext renderingContext, Chatter.Context chattingContext, Flowable<ChatResponse> responseFlow) {
+        final var responseMessageView = renderingContext.getResponseMessageView();
         responseMessageView.getRedoButton()
-                .setOnAction(new OnRedoEventHandler(
-                        autoScrollToBottomRef,
-                        request,
-                        this::decideChatModel,
-                        this::selectedAttachments,
-                        this::onChat
-                ));
+                .setOnAction(event -> {
+                    event.consume();
+                    autoScrollToBottomRef.set(false);
+                    renderingContext
+                            .setSource(event.getSource())
+                            .cleanDisplayBuf();
+                    chattingContext
+                            .setAttachments(selectedAttachments())
+                            .setDeepThinking(deepThinkingToggleButton.isSelected());
+                    onChat(new CompositeDisposable(), renderingContext, chattingContext);
+                });
         responseMessageView.getSpeakToggleButton()
                 .setOnAction(new OnSpeakEventHandler(
                         speakerControl,
-                        dashscope,
-                        sourceChannel,
+                        speaker,
                         responseFlow.map(r -> r.output().best().message().text())
                 ));
-        if(autoSpeakRef.get()) {
+        if (autoSpeakRef.get()) {
             responseMessageView.getSpeakToggleButton().setSelected(true);
             responseMessageView.getSpeakToggleButton().fireEvent(new ActionEvent());
         }
     }
 
     // 渲染对话的显示内容
-    private static StringBuilder renderingResponseDisplayBuf(ChatRenderingContext context) {
+    private static StringBuilder renderingResponseDisplayBuf(ChatRenderingContext renderingContext) {
         final var displayBuf = new StringBuilder();
-        final var reasoningContentDisplayBuf = context.getReasoningContentDisplayBuf();
+        final var reasoningContentDisplayBuf = renderingContext.getReasoningContentDisplayBuf();
         if (StringUtils.isNoneBlank(reasoningContentDisplayBuf)) {
             try (final var scanner = new Scanner(reasoningContentDisplayBuf.toString())) {
                 while (scanner.hasNextLine()) {
@@ -205,7 +173,7 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                 }
             }
         }
-        final var contentDisplayBuf = context.getContentDisplayBuf();
+        final var contentDisplayBuf = renderingContext.getContentDisplayBuf();
         if (StringUtils.isNoneBlank(contentDisplayBuf)) {
             displayBuf
                     .append(displayBuf.isEmpty() ? "" : "\n")
@@ -215,10 +183,10 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
     }
 
 
-    private void renderingResponseMessageViewOnNext(ChatRenderingContext context, ChatResponse response) {
+    private void renderingResponseMessageViewOnNext(ChatRenderingContext renderingContext, ChatResponse response) {
 
         // 更新检索引用
-        final var referenceBuf = context.getReferenceDisplayBuf();
+        final var referenceBuf = renderingContext.getReferenceDisplayBuf();
         if (referenceBuf.isEmpty() && response.output().hasSearchInfo()) {
             response.output().searchInfo().results()
                     .forEach(result -> referenceBuf.append("> - [%s](%s)\n".formatted(
@@ -230,42 +198,46 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
         final var responseMessage = response.output().best().message();
 
         // 更新内容缓存
-        final var contentDisplayBuf = context.getContentDisplayBuf();
+        final var contentDisplayBuf = renderingContext.getContentDisplayBuf();
         final var content = responseMessage.text();
         if (StringUtils.isNoneBlank(content)) {
             contentDisplayBuf.append(content);
         }
 
         // 更新思考缓存
-        final var reasoningContentDisplayBuf = context.getReasoningContentDisplayBuf();
+        final var reasoningContentDisplayBuf = renderingContext.getReasoningContentDisplayBuf();
         final var reasoningContent = responseMessage.reasoningContent();
         if (StringUtils.isNoneBlank(reasoningContent)) {
             reasoningContentDisplayBuf.append(reasoningContent);
         }
 
-        final var responseMessageView = context.getResponseMessageView();
-        final var responseDisplayBuf = renderingResponseDisplayBuf(context);
+        /*
+         * 渲染显示内容
+         */
+        final var responseMessageView = renderingContext.getResponseMessageView();
+        final var responseDisplayBuf = renderingResponseDisplayBuf(renderingContext);
         Platform.runLater(() -> responseMessageView.setContent(responseDisplayBuf));
+
     }
 
-    private void renderingResponseMessageViewOnFinish(ChatRenderingContext context) {
-        final var referenceBuf = context.getReferenceDisplayBuf();
-        final var responseMessageView = context.getResponseMessageView();
-        final var responseDisplayBuf = renderingResponseDisplayBuf(context)
+    private void renderingResponseMessageViewOnFinish(ChatRenderingContext renderingContext) {
+        final var referenceBuf = renderingContext.getReferenceDisplayBuf();
+        final var responseMessageView = renderingContext.getResponseMessageView();
+        final var responseDisplayBuf = renderingResponseDisplayBuf(renderingContext)
                 .append("\n")
                 .append(referenceBuf);
         Platform.runLater(() -> {
             responseMessageView.setContent(responseDisplayBuf);
             responseMessageView.setButtonBarEnabled(true);
-            if (context.getSource() == enterToggleButton) {
+            if (renderingContext.getSource() == enterToggleButton) {
                 enterToggleButton.setSelected(false);
             }
         });
     }
 
-    private void renderingResponseMessageViewOnError(ChatRenderingContext context, Throwable ex) {
-        final var responseMessageView = context.getResponseMessageView();
-        final var contentDisplayBuf = context.getContentDisplayBuf();
+    private void renderingResponseMessageViewOnError(ChatRenderingContext renderingContext, Throwable ex) {
+        final var responseMessageView = renderingContext.getResponseMessageView();
+        final var contentDisplayBuf = renderingContext.getContentDisplayBuf();
         final var rootEx = resolveRootCause(ex);
         final var error = """
                 %s
@@ -278,13 +250,13 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                 rootEx.getMessage(),
                 stackTraceToString(rootEx)
         );
-        final var responseDisplayBuf = renderingResponseDisplayBuf(context)
+        final var responseDisplayBuf = renderingResponseDisplayBuf(renderingContext)
                 .append("\n")
                 .append(error);
         Platform.runLater(() -> {
             responseMessageView.setContent(responseDisplayBuf);
             responseMessageView.setButtonBarEnabled(true);
-            if (context.getSource() == enterToggleButton) {
+            if (renderingContext.getSource() == enterToggleButton) {
                 enterToggleButton.setSelected(false);
             }
         });

@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.frontend.audio;
+package io.github.oldmanpushcart.moss.backend.audio;
 
 import javax.sound.sampled.*;
 import java.nio.ByteBuffer;

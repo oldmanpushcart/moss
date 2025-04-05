@@ -1,4 +1,4 @@
-package io.github.oldmanpushcart.moss.frontend.util;
+package io.github.oldmanpushcart.moss.backend.audio.internal;
 
 import io.github.oldmanpushcart.dashscope4j.Exchange;
 import io.reactivex.rxjava3.core.Observable;
@@ -18,7 +18,7 @@ import java.util.concurrent.CompletionStage;
  * @param <T> 数据交换请求类型
  * @param <R> 数据交换应答类型
  */
-public class ByteBufferObserverExchangeListener<T, R> implements Exchange.Listener<T, R> {
+class ByteBufferObserverExchangeListener<T, R> implements Exchange.Listener<T, R> {
 
     private final CompletableFuture<Observable<ByteBuffer>> completed = new CompletableFuture<>();
     private final Subject<ByteBuffer> subject = PublishSubject.create();

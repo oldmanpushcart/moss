@@ -1,8 +1,8 @@
 package io.github.oldmanpushcart.moss.backend.chatter.internal;
 
 import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
-import io.github.oldmanpushcart.dashscope4j.api.chat.ChatRequest;
-import io.github.oldmanpushcart.dashscope4j.api.chat.ChatResponse;
+import io.github.oldmanpushcart.dashscope4j.api.chat.*;
+import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
 import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.MemoryChatInterceptor;
 import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.RewriteUserMessageChatInterceptor;
@@ -43,13 +43,37 @@ public class ChatterImpl implements Chatter {
     }
 
     @Override
-    public CompletionStage<Flowable<ChatResponse>> chat(ChatRequest request) {
+    public CompletionStage<Flowable<ChatResponse>> chat(Context context, String inputText) {
+        final var request = newChatRequest(context, inputText);
         return chatOpFlow.flow(request)
                 .whenComplete((v,ex)-> {
                     if(null != ex) {
                         log.warn("moss://chat/flow error!", ex);
                     }
                 });
+    }
+
+    // 构建对话请求
+    private ChatRequest newChatRequest(Context context, String inputText) {
+        return ChatRequest.newBuilder()
+                .context(context)
+                .model(decideChatModel(context))
+                .option(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true)
+                .option(ChatOptions.ENABLE_WEB_SEARCH, true)
+                .option(ChatOptions.SEARCH_OPTIONS, new ChatSearchOption() {{
+                    forcedSearch(true);
+                    searchStrategy(SearchStrategy.STANDARD);
+                    enableSource();
+                }})
+                .addMessage(Message.ofUser(inputText))
+                .build();
+    }
+
+    // 决定采用那个对话模型
+    private ChatModel decideChatModel(Context context) {
+        return context.isDeepThinking()
+                ? ChatModel.QWQ_PLUS
+                : ChatModel.QWEN_MAX;
     }
 
 }
