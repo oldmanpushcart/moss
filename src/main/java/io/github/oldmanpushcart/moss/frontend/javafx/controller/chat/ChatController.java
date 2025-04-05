@@ -4,9 +4,11 @@ import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
 import io.github.oldmanpushcart.moss.backend.memory.Memory;
 import io.github.oldmanpushcart.moss.backend.uploader.Uploader;
+import io.github.oldmanpushcart.moss.frontend.audio.SourceDataLineChannel;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.AttachmentListView;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.MessageView;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.UploaderListView;
+import io.reactivex.rxjava3.core.Flowable;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -64,12 +66,20 @@ public class ChatController {
     @FXML
     private Pane controlPane;
 
-    private final AtomicBoolean autoScrollToBottomRef = new AtomicBoolean(true);
+    private final SourceDataLineChannel sourceChannel;
+    private final DashscopeClient dashscope;
     private final Chatter chatter;
     private final Uploader uploader;
 
+    private final AtomicBoolean autoSpeakRef = new AtomicBoolean(false);
+    private final AtomicBoolean autoScrollToBottomRef = new AtomicBoolean(true);
+    private final CompositeDisposableControl speakerControl = new CompositeDisposableControl();
+    private final CompositeDisposableControl chatterControl = new CompositeDisposableControl();
+
     @Autowired
-    public ChatController(Chatter chatter, DashscopeClient dashscope, Uploader uploader) {
+    public ChatController(SourceDataLineChannel sourceChannel, DashscopeClient dashscope, Chatter chatter, Uploader uploader) {
+        this.sourceChannel = sourceChannel;
+        this.dashscope = dashscope;
         this.chatter = chatter;
         this.uploader = uploader;
     }
@@ -83,6 +93,17 @@ public class ChatController {
         attachmentListView.managedProperty()
                 .bind(attachmentToggleButton.selectedProperty());
 
+        // 绑定自定朗读标记
+        autoSpeakToggleButton
+                .setOnAction(event -> {
+                    final var isSelected = autoSpeakToggleButton.isSelected();
+                    autoSpeakRef.set(isSelected);
+                    if(!isSelected) {
+                        speakerControl.interrupt();
+                    }
+                });
+
+        // 初始化上传列表
         initializeUploaderListView();
 
         // 发送状态切换
@@ -110,6 +131,11 @@ public class ChatController {
                         deepThinkingToggleButton,
                         enterToggleButton,
                         autoScrollToBottomRef,
+                        autoSpeakRef,
+                        speakerControl,
+                        chatterControl,
+                        sourceChannel,
+                        dashscope,
                         chatter
                 ));
 
@@ -195,6 +221,13 @@ public class ChatController {
                         setContent(fragment.responseMessage().text());
                         setButtonBarEnabled(true);
                         setRedoButtonEnabled(false);
+                        getSpeakToggleButton()
+                                .setOnAction(new OnSpeakEventHandler(
+                                        speakerControl,
+                                        dashscope,
+                                        sourceChannel,
+                                        Flowable.just(fragment.responseMessage().text())
+                                ));
                     }});
         });
     }

@@ -22,6 +22,7 @@ open module moss {
     requires javafx.web;
     requires javafx.controls;
     requires jdk.jsobject;
+    requires java.desktop;
 
     requires org.commonmark;
     requires org.commonmark.ext.gfm.tables;

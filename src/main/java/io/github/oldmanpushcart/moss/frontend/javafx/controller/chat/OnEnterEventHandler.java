@@ -1,10 +1,13 @@
 package io.github.oldmanpushcart.moss.frontend.javafx.controller.chat;
 
+import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.dashscope4j.api.chat.*;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
+import io.github.oldmanpushcart.moss.frontend.audio.SourceDataLineChannel;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.AttachmentListView;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.MessageView;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -35,8 +38,13 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
     private final ToggleButton enterToggleButton;
     private final AtomicBoolean autoScrollToBottomRef;
 
+    private final AtomicBoolean autoSpeakRef;
+    private final CompositeDisposableControl speakerControl;
+    private final CompositeDisposableControl chatterControl;
+    private final SourceDataLineChannel sourceChannel;
+    private final DashscopeClient dashscope;
+
     private final Chatter chatter;
-    private final CompositeDisposableControl chatControl = new CompositeDisposableControl();
 
     @Override
     public void handle(ActionEvent event) {
@@ -67,53 +75,39 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
             messagesBox.getChildren()
                     .add(responseMessageView);
 
-            final var request = ChatRequest.newBuilder()
-                    .context(Chatter.Context.class,
-                            new Chatter.Context() {{
-                                setAttachments(selectedAttachments());
-                            }})
-                    .context(ChatRenderingContext.class,
-                            new ChatRenderingContext() {{
-                                setSource(event.getSource());
-                                setResponseMessageView(responseMessageView);
-                            }})
-                    .model(decideChatModel())
-                    .option(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true)
-                    .option(ChatOptions.ENABLE_WEB_SEARCH, true)
-                    .option(ChatOptions.SEARCH_OPTIONS, new ChatSearchOption() {{
-                        forcedSearch(true);
-                        searchStrategy(SearchStrategy.STANDARD);
-                        enableSource();
-                    }})
-                    .addMessage(Message.ofUser(inputText))
-                    .build();
-
-            responseMessageView.getRedoButton()
-                    .setOnAction(e -> {
-                        e.consume();
-                        autoScrollToBottomRef.set(false);
-                        final var newRequest = ChatRequest.newBuilder(request)
-                                .model(decideChatModel())
-                                .building(builder -> {
-                                    final var context = request.context(Chatter.Context.class)
-                                            .setAttachments(selectedAttachments());
-                                    final var renderingContext = request.context(ChatRenderingContext.class)
-                                            .setSource(e)
-                                            .cleanDisplayBuf();
-                                    builder.context(Chatter.Context.class, context);
-                                    builder.context(ChatRenderingContext.class, renderingContext);
-                                })
-                                .build();
-                        onChat(newRequest, new CompositeDisposable());
-                    });
+            final var request = newChatRequest(event, inputText, responseMessageView);
 
             // 执行对话
-            final var dispose = chatControl.interruptAndNew();
+            final var dispose = chatterControl.interruptAndNew();
             onChat(request, dispose);
 
         } else {
-            chatControl.interrupt();
+            chatterControl.interrupt();
         }
+    }
+
+    // 构建对话请求
+    private ChatRequest newChatRequest(ActionEvent event, String inputText, MessageView responseMessageView) {
+        return ChatRequest.newBuilder()
+                .context(Chatter.Context.class,
+                        new Chatter.Context() {{
+                            setAttachments(selectedAttachments());
+                        }})
+                .context(ChatRenderingContext.class,
+                        new ChatRenderingContext() {{
+                            setSource(event.getSource());
+                            setResponseMessageView(responseMessageView);
+                        }})
+                .model(decideChatModel())
+                .option(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true)
+                .option(ChatOptions.ENABLE_WEB_SEARCH, true)
+                .option(ChatOptions.SEARCH_OPTIONS, new ChatSearchOption() {{
+                    forcedSearch(true);
+                    searchStrategy(SearchStrategy.STANDARD);
+                    enableSource();
+                }})
+                .addMessage(Message.ofUser(inputText))
+                .build();
     }
 
     // 获取输入框的文本并清空输入框
@@ -150,6 +144,27 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
         });
 
         chatter.chat(request)
+                .thenApply(Flowable::cache)
+                .thenApply(responseFlow -> responseFlow
+                        .doOnSubscribe(sub -> {
+                            responseMessageView.getRedoButton()
+                                    .setOnAction(new OnRedoEventHandler(
+                                            autoScrollToBottomRef,
+                                            request,
+                                            this::decideChatModel,
+                                            this::selectedAttachments,
+                                            this::onChat
+                                    ));
+                            responseMessageView.getSpeakToggleButton()
+                                    .setOnAction(new OnSpeakEventHandler(
+                                            speakerControl,
+                                            dashscope,
+                                            sourceChannel,
+                                            responseFlow.map(r -> r.output().best().message().text())
+                                    ));
+                            responseMessageView.getSpeakToggleButton().setSelected(true);
+                            responseMessageView.getSpeakToggleButton().fireEvent(new ActionEvent());
+                        }))
                 .thenAccept(responseFlow -> responseFlow
                         .subscribe(
                                 r -> renderingResponseMessageViewOnNext(renderingContext, r),
