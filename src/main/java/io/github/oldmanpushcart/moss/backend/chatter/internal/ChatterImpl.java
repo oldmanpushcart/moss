@@ -56,7 +56,7 @@ public class ChatterImpl implements Chatter {
     // 构建对话请求
     private ChatRequest newChatRequest(Context context, String inputText) {
         return ChatRequest.newBuilder()
-                .context(context)
+                .context(Chatter.Context.class, context)
                 .model(decideChatModel(context))
                 .option(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true)
                 .option(ChatOptions.ENABLE_WEB_SEARCH, true)

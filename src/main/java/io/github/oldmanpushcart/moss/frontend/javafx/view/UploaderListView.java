@@ -1,6 +1,7 @@
 package io.github.oldmanpushcart.moss.frontend.javafx.view;
 
 import io.github.oldmanpushcart.moss.backend.uploader.Uploader;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -14,10 +15,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
@@ -31,28 +35,22 @@ public class UploaderListView extends AnchorPane {
     private TableColumn<Item, CheckBox> selectCol;
 
     @FXML
-    private TableColumn<Item, String> mimeCol;
-
-    @FXML
-    private TableColumn<Item, String> sizeCol;
+    private TableColumn<Item, String> lengthCol;
 
     @FXML
     private TableColumn<Item, String> modelCol;
 
     @FXML
-    private TableColumn<Item, String> sourceCol;
+    private TableColumn<Item, String> filenameCol;
 
     @FXML
-    private TableColumn<Item, String> uploadCol;
+    private TableColumn<Item, String> uploadedCol;
 
     @FXML
     private TableColumn<Item, String> expiresAtCol;
 
     @FXML
     private TableColumn<Item, String> createdAtCol;
-
-    @FXML
-    private TableColumn<Item, String> updatedAtCol;
 
     @FXML
     private TableColumn<Item, Node> optsCol;
@@ -69,8 +67,9 @@ public class UploaderListView extends AnchorPane {
     @FXML
     private Button flushButton;
 
+    private Supplier<CompletionStage<List<Uploader.Entry>>> flushAction;
+    private Function<List<Long>, CompletionStage<?>> deleteAction;
     private Supplier<List<Uploader.Entry>> loadAction;
-    private Consumer<List<Uploader.Entry>> deleteAction;
 
     public UploaderListView() {
         final var loader = new FXMLLoader(getClass().getResource("/frontend/fxml/chat/uploader-list-view.fxml"));
@@ -84,12 +83,23 @@ public class UploaderListView extends AnchorPane {
     }
 
     /**
+     * 设置刷新表格的动作
+     *
+     * @param action 刷新动作
+     * @return this
+     */
+    public UploaderListView setOnFlushAction(Supplier<CompletionStage<List<Uploader.Entry>>> action) {
+        this.flushAction = action;
+        return this;
+    }
+
+    /**
      * 设置删除选中项的动作
      *
      * @param action 删除动作
      * @return this
      */
-    public UploaderListView setOnDeleteAction(Consumer<List<Uploader.Entry>> action) {
+    public UploaderListView setOnDeleteAction(Function<List<Long>, CompletionStage<?>> action) {
         this.deleteAction = action;
         return this;
     }
@@ -105,14 +115,28 @@ public class UploaderListView extends AnchorPane {
         return this;
     }
 
+    private void lock() {
+        setDisable(true);
+    }
+
+    private void unlock() {
+        setDisable(false);
+    }
+
     /**
      * 加载表格数据
-     *
-     * @return this
      */
-    public UploaderListView load() {
-        flushButton.fire();
-        return this;
+    public void load() {
+        if (null == loadAction) {
+            return;
+        }
+        lock();
+        final var items = loadAction.get().stream()
+                .map(Item::new)
+                .toList();
+        uploaderTable.getItems().clear();
+        uploaderTable.getItems().addAll(items);
+        unlock();
     }
 
     @FXML
@@ -136,29 +160,43 @@ public class UploaderListView extends AnchorPane {
 
         // 刷新表格
         flushButton.setOnAction(event -> {
-            uploaderTable.getItems().clear();
-            if (loadAction != null) {
-                final var entries = loadAction.get();
-                if (entries != null) {
-                    uploaderTable.getItems().addAll(entries.stream().map(Item::new).toList());
-                }
+            if (null == flushAction) {
+                return;
             }
+            lock();
+            flushAction.get()
+                    .thenApply(entries -> entries.stream()
+                            .map(Item::new)
+                            .toList())
+                    .thenAccept(items ->
+                            Platform.runLater(() -> {
+                                uploaderTable.getItems().clear();
+                                uploaderTable.getItems().addAll(items);
+                                unlock();
+                            }));
         });
 
         // 删除选中项
         deleteSelectedButton.setOnAction(event -> {
-            if (deleteAction != null) {
-                final var deletes = uploaderTable.getItems()
-                        .stream()
-                        .filter(Item::isSelected)
-                        .toList();
-                final var entries = deletes.stream()
-                        .filter(Item::isSelected)
-                        .map(Item::entry)
-                        .toList();
-                deleteAction.accept(entries);
-                uploaderTable.getItems().removeAll(deletes);
+            if (null == deleteAction) {
+                return;
             }
+            final var items = uploaderTable.getItems();
+            final var deleteItems = items
+                    .stream()
+                    .filter(Item::isSelected)
+                    .toList();
+            final var deleteEntryIds = deleteItems.stream()
+                    .map(Item::entry)
+                    .map(Uploader.Entry::entryId)
+                    .toList();
+            lock();
+            deleteAction.apply(deleteEntryIds)
+                    .thenAccept(unused ->
+                            Platform.runLater(() -> {
+                                items.removeAll(deleteItems);
+                                unlock();
+                            }));
         });
 
     }
@@ -173,34 +211,29 @@ public class UploaderListView extends AnchorPane {
             return item.checkBoxProperty();
         });
 
-        mimeCol.setCellFactory(col -> new TooltipStringTableCell<>());
-        mimeCol.setCellValueFactory(data -> {
-            final var item = data.getValue();
-            return new SimpleStringProperty(item.entry().mime());
-        });
-
-        sizeCol.setCellFactory(col -> new TooltipStringTableCell<>());
-        sizeCol.setCellValueFactory(data -> {
-            final var item = data.getValue();
-            return new SimpleStringProperty(byteCountToDisplaySize(item.entry().length()));
-        });
-
         modelCol.setCellFactory(col -> new TooltipStringTableCell<>());
         modelCol.setCellValueFactory(data -> {
             final var item = data.getValue();
             return new SimpleStringProperty(item.entry().model());
         });
 
-        sourceCol.setCellFactory(col -> new TooltipStringTableCell<>());
-        sourceCol.setCellValueFactory(data -> {
+        lengthCol.setCellFactory(col -> new TooltipStringTableCell<>());
+        lengthCol.setCellValueFactory(data -> {
             final var item = data.getValue();
-            return new SimpleStringProperty(String.valueOf(item.entry().source()));
+            return new SimpleStringProperty(byteCountToDisplaySize(item.entry().length()));
         });
 
-        uploadCol.setCellFactory(col -> new TooltipStringTableCell<>());
-        uploadCol.setCellValueFactory(data -> {
+        filenameCol.setCellFactory(col -> new TooltipStringTableCell<>());
+        filenameCol.setCellValueFactory(data -> {
             final var item = data.getValue();
-            return new SimpleStringProperty(String.valueOf(item.entry().upload()));
+            final var filename = URLDecoder.decode(String.valueOf(item.entry().filename()), StandardCharsets.UTF_8);
+            return new SimpleStringProperty(filename);
+        });
+
+        uploadedCol.setCellFactory(col -> new TooltipStringTableCell<>());
+        uploadedCol.setCellValueFactory(data -> {
+            final var item = data.getValue();
+            return new SimpleStringProperty(String.valueOf(item.entry().uploaded()));
         });
 
         expiresAtCol.setCellFactory(col -> new TooltipStringTableCell<>());
@@ -221,14 +254,6 @@ public class UploaderListView extends AnchorPane {
             final var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                     .withZone(ZoneId.systemDefault());
             return new SimpleStringProperty(formatter.format(item.entry().createdAt()));
-        });
-
-        updatedAtCol.setCellFactory(col -> new TooltipStringTableCell<>());
-        updatedAtCol.setCellValueFactory(data -> {
-            final var item = data.getValue();
-            final var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                    .withZone(ZoneId.systemDefault());
-            return new SimpleStringProperty(formatter.format(item.entry().updatedAt()));
         });
 
         optsCol.setCellValueFactory(data -> {
@@ -261,10 +286,11 @@ public class UploaderListView extends AnchorPane {
                                 setText("删除");
                                 setStyle("-fx-text-fill: #E34234; -fx-font-weight: bold;");
                                 setOnAction(event -> {
-                                    if (deleteAction != null) {
-                                        deleteAction.accept(List.of(Item.this.entry));
-                                        uploaderTable.getItems().remove(Item.this);
+                                    if (null == deleteAction) {
+                                        return;
                                     }
+                                    deleteAction.apply(List.of(Item.this.entry.entryId()));
+                                    uploaderTable.getItems().remove(Item.this);
                                 });
                             }}
                     );

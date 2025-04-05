@@ -90,7 +90,7 @@ public class ChatController {
                 .setOnAction(event -> {
                     final var isSelected = autoSpeakToggleButton.isSelected();
                     autoSpeakRef.set(isSelected);
-                    if(!isSelected) {
+                    if (!isSelected) {
                         speakerControl.interrupt();
                     }
                 });
@@ -189,9 +189,9 @@ public class ChatController {
 
         // 绑定显示上传列表
         uploaderListView
-                .setOnLoadAction(uploader::listUploaded)
-                .setOnDeleteAction(entries ->
-                        entries.forEach(entry -> uploader.delete(entry.entryId())))
+                .setOnLoadAction(uploader::listAll)
+                .setOnFlushAction(uploader::flush)
+                .setOnDeleteAction(uploader::deleteByIds)
                 .load();
     }
 

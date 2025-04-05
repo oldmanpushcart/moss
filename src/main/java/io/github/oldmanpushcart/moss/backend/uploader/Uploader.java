@@ -17,7 +17,7 @@ public interface Uploader {
      *
      * @param model  模型
      * @param source 资源URI
-     * @return 缓存条目
+     * @return 上传操作结果
      */
     CompletionStage<Entry> upload(Model model, URI source);
 
@@ -26,46 +26,48 @@ public interface Uploader {
      *
      * @return 已上传缓存条目集合
      */
-    List<Entry> listUploaded();
+    List<Entry> listAll();
 
     /**
      * 删除缓存条目
      *
      * @param entryId 条目ID
-     * @return 删除是否成功
+     * @return 删除操作结果
      */
-    boolean delete(long entryId);
+    CompletionStage<?> delete(long entryId);
+
+    CompletionStage<?> deleteByIds(List<Long> entryIds);
 
     /**
-     * 删除缓存条目
+     * 刷新缓存条目
      *
-     * @param model  模型
-     * @param source 资源URI
-     * @return 删除是否成功
+     * @return 刷新操作结果
      */
-    boolean delete(Model model, URI source);
+    CompletionStage<List<Entry>> flush();
 
     /**
      * 上传条目
      *
-     * @param entryId 条目ID
-     * @param mime    资源类型
-     * @param length  资源大小
-     * @param model   模型名称
-     * @param source  资源地址
-     * @param upload  上传地址
+     * @param entryId   条目ID
+     * @param uniqueKey 上传唯一键
+     * @param model     使用模型
+     * @param length    文件大小
+     * @param filename  文件名称
+     * @param uploaded  上传地址
+     * @param expiresAt 过期时间
+     * @param createdAt 创建时间
      */
     record Entry(
             long entryId,
-            String mime,
-            long length,
+            String uniqueKey,
             String model,
-            URI source,
-            URI upload,
+            long length,
+            String filename,
+            URI uploaded,
             Instant expiresAt,
-            Instant createdAt,
-            Instant updatedAt
+            Instant createdAt
     ) {
 
     }
+
 }

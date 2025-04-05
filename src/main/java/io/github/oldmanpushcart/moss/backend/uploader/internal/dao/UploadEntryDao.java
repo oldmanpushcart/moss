@@ -11,18 +11,37 @@ import java.util.List;
 @Mapper
 public interface UploadEntryDao {
 
+    /**
+     * 插入上传条目
+     *
+     * @param entry 上传条目
+     */
     void insert(UploadEntryDO entry);
 
+    /**
+     * 根据ID获取上传条目
+     *
+     * @param entryId 上传条目ID
+     * @return 上传条目
+     */
     UploadEntryDO getById(long entryId);
 
-    UploadEntryDO getByUploadKey(String uploadKey);
+    /**
+     * 根据上传唯一键获取上传条目
+     *
+     * @param uniqueKey 上传唯一键
+     * @return 上传条目
+     */
+    UploadEntryDO getByUniqueKey(String uniqueKey);
 
-    List<UploadEntryDO> queryByStatus(int status);
+    List<UploadEntryDO> listAll();
 
-    List<UploadEntryDO> queryForClean(int limit);
-
-    int update(UploadEntryDO entry);
-
+    /**
+     * 根据ID删除上传条目
+     *
+     * @param entryId 上传条目ID
+     * @return 删除记录数
+     */
     int deleteById(long entryId);
 
 }

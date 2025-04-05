@@ -72,7 +72,7 @@ public class DashscopeImage2ImageFunction
 
     private CompletionStage<URI> upload(URI resource) {
         return uploader.upload(GenImageModel.WANX_V1, resource)
-                .thenApply(Uploader.Entry::upload);
+                .thenApply(Uploader.Entry::uploaded);
     }
 
     public record Parameter(
