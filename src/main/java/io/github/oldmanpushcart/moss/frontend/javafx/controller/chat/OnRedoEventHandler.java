@@ -14,6 +14,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+/**
+ * 重新发送事件处理器
+ */
 @AllArgsConstructor
 public class OnRedoEventHandler implements EventHandler<ActionEvent> {
 

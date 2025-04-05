@@ -25,5 +25,6 @@ logging:
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
   mapper-locations: classpath:backend/mapper/*.xml
   type-handlers-package: io.github.oldmanpushcart.moss.backend.ibatis.type

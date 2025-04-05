@@ -31,7 +31,7 @@ import java.util.concurrent.CompletionStage;
 @SpringBootApplication
 public class MossApplication extends Application {
 
-    private static final Image ICON_IMAGE = new Image(Objects.requireNonNull(MossApplication.class.getResourceAsStream("/frontend/statics/image/moss-icon.png")));
+    private static final Image ICON_IMAGE = new Image(Objects.requireNonNull(MossApplication.class.getResourceAsStream("/frontend/statics/image/moss-logo.png")));
     private volatile ConfigurableApplicationContext springCtx;
 
     @Override

@@ -75,11 +75,11 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
             messagesBox.getChildren()
                     .add(responseMessageView);
 
-            final var request = newChatRequest(event, inputText, responseMessageView);
-
             // 执行对话
-            final var dispose = chatterControl.interruptAndNew();
-            onChat(request, dispose);
+            onChat(
+                    newChatRequest(event, inputText, responseMessageView),
+                    chatterControl.interruptAndNew()
+            );
 
         } else {
             chatterControl.interrupt();
@@ -144,28 +144,16 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
         });
 
         chatter.chat(request)
+
+                /*
+                 * 这里因为要进行音频播放，所以必须要对流结果进行缓存。
+                 * 否则在播放的时候会重新触发流执行
+                 */
                 .thenApply(Flowable::cache)
-                .thenApply(responseFlow -> responseFlow
-                        .doOnSubscribe(sub -> {
-                            responseMessageView.getRedoButton()
-                                    .setOnAction(new OnRedoEventHandler(
-                                            autoScrollToBottomRef,
-                                            request,
-                                            this::decideChatModel,
-                                            this::selectedAttachments,
-                                            this::onChat
-                                    ));
-                            responseMessageView.getSpeakToggleButton()
-                                    .setOnAction(new OnSpeakEventHandler(
-                                            speakerControl,
-                                            dashscope,
-                                            sourceChannel,
-                                            responseFlow.map(r -> r.output().best().message().text())
-                                    ));
-                            responseMessageView.getSpeakToggleButton().setSelected(true);
-                            responseMessageView.getSpeakToggleButton().fireEvent(new ActionEvent());
-                        }))
+
+                // 订阅流
                 .thenAccept(responseFlow -> responseFlow
+                        .doOnSubscribe(sub -> renderingResponseMessageViewOnSubscribe(renderingContext, request, responseFlow))
                         .subscribe(
                                 r -> renderingResponseMessageViewOnNext(renderingContext, r),
                                 ex -> renderingResponseMessageViewOnError(renderingContext, ex),
@@ -173,11 +161,37 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                                 dispose
                         ))
 
+                // 当出现异常时需要将渲染异常信息
                 .whenComplete((v, ex) -> {
                     if (null != ex) {
                         renderingResponseMessageViewOnError(renderingContext, ex);
                     }
                 });
+
+    }
+
+    // 渲染响应消息
+    private void renderingResponseMessageViewOnSubscribe(ChatRenderingContext context, ChatRequest request, Flowable<ChatResponse> responseFlow) {
+        final var responseMessageView = context.getResponseMessageView();
+        responseMessageView.getRedoButton()
+                .setOnAction(new OnRedoEventHandler(
+                        autoScrollToBottomRef,
+                        request,
+                        this::decideChatModel,
+                        this::selectedAttachments,
+                        this::onChat
+                ));
+        responseMessageView.getSpeakToggleButton()
+                .setOnAction(new OnSpeakEventHandler(
+                        speakerControl,
+                        dashscope,
+                        sourceChannel,
+                        responseFlow.map(r -> r.output().best().message().text())
+                ));
+        if(autoSpeakRef.get()) {
+            responseMessageView.getSpeakToggleButton().setSelected(true);
+            responseMessageView.getSpeakToggleButton().fireEvent(new ActionEvent());
+        }
     }
 
     // 渲染对话的显示内容

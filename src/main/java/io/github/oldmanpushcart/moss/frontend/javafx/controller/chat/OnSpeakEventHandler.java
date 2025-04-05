@@ -24,6 +24,9 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
+/**
+ * 朗读按钮事件处理器
+ */
 @AllArgsConstructor
 public class OnSpeakEventHandler implements EventHandler<ActionEvent> {
 
