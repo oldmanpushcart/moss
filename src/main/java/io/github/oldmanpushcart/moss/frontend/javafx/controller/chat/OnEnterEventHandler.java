@@ -1,6 +1,7 @@
 package io.github.oldmanpushcart.moss.frontend.javafx.controller.chat;
 
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatResponse;
+import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.moss.backend.audio.Speaker;
 import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.AttachmentListView;
@@ -19,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -56,6 +58,7 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
 
             final var chattingContext = new Chatter.Context() {{
                 setAttachments(selectedAttachments());
+                setDeepThinking(deepThinkingToggleButton.isSelected());
             }};
 
             final var renderingContext = new ChatRenderingContext() {{
@@ -108,17 +111,25 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
             responseMessageView.setButtonBarEnabled(false);
         });
 
+        final var isFirstResponseRef = new AtomicBoolean(true);
+
         chatter.chat(chattingContext, renderingContext.getInputText())
 
                 /*
                  * 这里因为要进行音频播放，所以必须要对流结果进行缓存。
                  * 否则在播放的时候会重新触发流执行
                  */
-                .thenApply(Flowable::cache)
+                .thenApply(responseFlow -> {
+                    final var replayFlow = responseFlow.replay();
+                    dispose.add(replayFlow.connect());
+                    return replayFlow;
+                })
 
                 // 订阅流
                 .thenAccept(responseFlow -> responseFlow
                         .doOnSubscribe(sub -> renderingResponseMessageViewOnSubscribe(renderingContext, chattingContext, responseFlow))
+                        .doOnNext(r -> triggerAutoSpeakInFirstResponse(isFirstResponseRef, renderingContext, r))
+                        .doOnCancel(() -> renderingResponseMessageViewOnFinish(renderingContext))
                         .subscribe(
                                 r -> renderingResponseMessageViewOnNext(renderingContext, r),
                                 ex -> renderingResponseMessageViewOnError(renderingContext, ex),
@@ -133,6 +144,28 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                     }
                 });
 
+    }
+
+    // 首应答包触发自动朗读（如有）
+    private void triggerAutoSpeakInFirstResponse(AtomicBoolean isFirstResponseRef, ChatRenderingContext renderingContext, ChatResponse response) {
+        final var message = response.output().best().message();
+
+        /*
+         * 首应答判断
+         * 这里需要过滤掉 非AI消息、空文本消息。
+         * 因为会有function_call的调用返回，会被误判为可播放的语音首包
+         */
+        if (!isFirstResponseRef.get()
+            || !Objects.equals(message.role(), Message.Role.AI)
+            || !StringUtils.isNotBlank(message.text())) {
+            return;
+        }
+        isFirstResponseRef.set(false);
+        if (autoSpeakRef.get()) {
+            final var responseMessageView = renderingContext.getResponseMessageView();
+            responseMessageView.getSpeakToggleButton().setSelected(true);
+            responseMessageView.getSpeakToggleButton().fireEvent(new ActionEvent());
+        }
     }
 
     // 渲染响应消息
@@ -156,10 +189,6 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                         speaker,
                         responseFlow.map(r -> r.output().best().message().text())
                 ));
-        if (autoSpeakRef.get()) {
-            responseMessageView.getSpeakToggleButton().setSelected(true);
-            responseMessageView.getSpeakToggleButton().fireEvent(new ActionEvent());
-        }
     }
 
     // 渲染对话的显示内容

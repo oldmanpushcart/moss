@@ -14,7 +14,7 @@ import static java.util.concurrent.CompletableFuture.completedStage;
  * 朗读按钮事件处理器
  */
 @AllArgsConstructor
-public class OnSpeakEventHandler implements EventHandler<ActionEvent> {
+class OnSpeakEventHandler implements EventHandler<ActionEvent> {
 
     private final CompositeDisposableControl speakerControl;
     private final Speaker speaker;

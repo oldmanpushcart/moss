@@ -24,7 +24,7 @@ import java.util.concurrent.CompletionStage;
 @AllArgsConstructor(onConstructor_ = @Autowired)
 @Component
 @ChatFnName("dashscope_image2video")
-@ChatFnDescription("图生视频：根据参考图片和文本提示生成视频")
+@ChatFnDescription("图生视频：根据参考图片和文本提示生成视频。当且仅当需要根据一张图为参考生成视频时使用。")
 public class DashscopeImage2VideoFunction
         implements ChatFunction<DashscopeImage2VideoFunction.Parameter, DashscopeImage2VideoFunction.Result> {
 

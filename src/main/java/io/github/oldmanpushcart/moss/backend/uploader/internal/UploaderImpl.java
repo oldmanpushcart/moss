@@ -46,7 +46,7 @@ public class UploaderImpl implements Uploader {
 
         final var filename = source.toASCIIString();
         final var uniqueKey = computeUniqueKey(model, filename);
-        final var existDO = store.getByUniqueKey(uniqueKey);
+        final var existDO = loadingByUniqueKey(uniqueKey);
         if (null != existDO) {
             log.debug("{}/upload entry cached, uniqueKey={};model={};source={};",
                     this,
@@ -57,14 +57,14 @@ public class UploaderImpl implements Uploader {
             return completedStage(toUploadEntry(existDO));
         }
 
-        return _upload(model, source)
+        return uploading(model, source)
                 .thenApply(entryDO -> {
                     store.insert(entryDO);
                     return store.getById(entryDO.getEntryId());
                 })
                 .thenApply(UploadEntryHelper::toUploadEntry)
-                .whenComplete((entry,ex)-> {
-                    if(null != ex) {
+                .whenComplete((entry, ex) -> {
+                    if (null != ex) {
                         log.warn("{}/upload failed, model={};source={};", this, model, source, ex);
                     } else {
                         log.debug("{}/upload success, uniqueKey={};model={};source={};", this, uniqueKey, model, source);
@@ -72,7 +72,30 @@ public class UploaderImpl implements Uploader {
                 });
     }
 
-    private CompletionStage<UploadEntryDO> _upload(Model model, URI source) {
+    // 从本地加载缓存条目
+    private UploadEntryDO loadingByUniqueKey(String uniqueKey) {
+
+        // 查询数据库，如果查不到则没命中缓存
+        final var existDO = store.getByUniqueKey(uniqueKey);
+        if (null == existDO) {
+            return null;
+        }
+
+        /*
+         * 命中缓存后需要检查是否过期，
+         * 如果过期则清理过期数据，并返回没命中
+         */
+        if (existDO.isExpired()) {
+            store.deleteById(existDO.getEntryId());
+            return null;
+        }
+
+        // 命中缓存
+        return existDO;
+    }
+
+    // 上传文件
+    private CompletionStage<UploadEntryDO> uploading(Model model, URI source) {
         final var filename = source.toASCIIString();
         if (isQwenLong(model)) {
             return dashscope.base().files()
@@ -99,13 +122,15 @@ public class UploaderImpl implements Uploader {
                             connection.setReadTimeout(30 * 1000);
                             connection.connect();
 
+                            final var now = Instant.now();
                             return new UploadEntryDO()
                                     .setUniqueKey(computeUniqueKey(model, filename))
                                     .setModel(computeModel(model))
                                     .setLength(connection.getContentLengthLong())
                                     .setFilename(filename)
                                     .setUploaded(uploaded)
-                                    .setCreatedAt(Instant.now());
+                                    .setExpiresAt(now.plus(config.getOssExpiresDuration()))
+                                    .setCreatedAt(now);
 
                         } catch (IOException e) {
                             throw new RuntimeException(e);
@@ -122,11 +147,22 @@ public class UploaderImpl implements Uploader {
     @Override
     public List<Entry> listAll() {
         return store.listAll().stream()
+
+                // 过滤并删除掉过期的数据
+                .filter(entryDO -> {
+                    if (entryDO.isExpired()) {
+                        store.deleteById(entryDO.getEntryId());
+                        return false;
+                    }
+                    return true;
+                })
+
+                // DOs -> DTOs
                 .map(UploadEntryHelper::toUploadEntry)
                 .toList();
     }
 
-    private CompletionStage<?> _delete(long entryId) {
+    private CompletionStage<?> deleting(long entryId) {
         final var existDO = store.getById(entryId);
         if (null == existDO) {
             return completedStage(null);
@@ -141,8 +177,8 @@ public class UploaderImpl implements Uploader {
 
     @Override
     public CompletionStage<?> delete(long entryId) {
-        return _delete(entryId)
-                .whenComplete((unused, ex)-> {
+        return deleting(entryId)
+                .whenComplete((unused, ex) -> {
                     if (null != ex) {
                         log.warn("{}/delete failed, entryId={};", this, entryId, ex);
                     } else {
@@ -155,7 +191,7 @@ public class UploaderImpl implements Uploader {
     public CompletionStage<?> deleteByIds(List<Long> entryIds) {
         CompletionStage<?> stage = completedStage(null);
         for (final var entryId : entryIds) {
-            stage = stage.thenCompose(v -> _delete(entryId));
+            stage = stage.thenCompose(v -> deleting(entryId));
         }
         return stage.whenComplete((unused, ex) -> {
             if (null != ex) {

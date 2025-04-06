@@ -25,7 +25,7 @@ import java.util.concurrent.CompletionStage;
 @AllArgsConstructor(onConstructor_ = @Autowired)
 @Component
 @ChatFnName("dashscope_image2image")
-@ChatFnDescription("图生图：根据参考图片和文本提示生成图片")
+@ChatFnDescription("图生图：根据参考图片和文本提示生成图片。当且仅当需要根据一张图为参考生成新的图片时使用。")
 public class DashscopeImage2ImageFunction
         implements ChatFunction<DashscopeImage2ImageFunction.Parameter, DashscopeImage2ImageFunction.Result> {
 

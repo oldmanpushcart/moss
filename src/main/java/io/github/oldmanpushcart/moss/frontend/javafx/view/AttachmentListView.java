@@ -1,9 +1,7 @@
 package io.github.oldmanpushcart.moss.frontend.javafx.view;
 
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -44,6 +42,8 @@ public class AttachmentListView extends AnchorPane {
     @FXML
     private TableColumn<Item, Node> optsCol;
 
+    private final BooleanProperty enabledProperty = new SimpleBooleanProperty();
+
     public AttachmentListView() {
         final var loader = new FXMLLoader(getClass().getResource("/frontend/fxml/chat/attachment-list-view.fxml"));
         loader.setRoot(this);
@@ -55,11 +55,21 @@ public class AttachmentListView extends AnchorPane {
         }
     }
 
+    public void bindEnabledProperty(BooleanProperty enabledProperty) {
+        this.enabledProperty.bind(enabledProperty);
+    }
+
     @FXML
     private void initialize() {
         initializeTableColumns();
+        bindingEnabledProperty();
         autoResizeColumns();
         enableDragDrop();
+    }
+
+    private void bindingEnabledProperty() {
+        visibleProperty().bind(enabledProperty);
+        managedProperty().bind(enabledProperty);
     }
 
     /*

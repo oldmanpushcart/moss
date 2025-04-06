@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import io.github.oldmanpushcart.moss.frontend.javafx.view.AttachmentListView?>
-<?import io.github.oldmanpushcart.moss.frontend.javafx.view.UploaderListView?>
+<?import io.github.oldmanpushcart.moss.frontend.javafx.view.UploaderView?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
@@ -23,7 +23,7 @@
         </center>
         <bottom>
             <VBox fx:id="controlPane" BorderPane.alignment="CENTER">
-                <UploaderListView fx:id="uploaderListView"/>
+                <UploaderView fx:id="uploaderView"/>
                 <AttachmentListView fx:id="attachmentListView"/>
                 <ToolBar prefHeight="40.0">
                     <ToggleButton fx:id="deepThinkingToggleButton" mnemonicParsing="false" text="深度思考"/>

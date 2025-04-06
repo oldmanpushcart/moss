@@ -9,7 +9,7 @@ import lombok.experimental.Accessors;
  */
 @Data
 @Accessors(chain = true)
-public class ChatRenderingContext {
+class ChatRenderingContext {
 
     private Object source;
     private String inputText;

@@ -6,13 +6,15 @@ import io.github.oldmanpushcart.moss.backend.memory.Memory;
 import io.github.oldmanpushcart.moss.backend.uploader.Uploader;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.AttachmentListView;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.MessageView;
-import io.github.oldmanpushcart.moss.frontend.javafx.view.UploaderListView;
+import io.github.oldmanpushcart.moss.frontend.javafx.view.UploaderView;
+import io.micrometer.common.util.StringUtils;
 import io.reactivex.rxjava3.core.Flowable;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
@@ -41,7 +43,7 @@ public class ChatController {
     private VBox messagesBox;
 
     @FXML
-    private UploaderListView uploaderListView;
+    private UploaderView uploaderView;
 
     @FXML
     private AttachmentListView attachmentListView;
@@ -79,12 +81,6 @@ public class ChatController {
     @FXML
     private void initialize() {
 
-        // 绑定显示附件列表
-        attachmentListView.visibleProperty()
-                .bind(attachmentToggleButton.selectedProperty());
-        attachmentListView.managedProperty()
-                .bind(attachmentToggleButton.selectedProperty());
-
         // 绑定自定朗读标记
         autoSpeakToggleButton
                 .setOnAction(event -> {
@@ -95,8 +91,15 @@ public class ChatController {
                     }
                 });
 
+        // 初始化附件列表
+        attachmentListView
+                .bindEnabledProperty(attachmentToggleButton.selectedProperty());
+
         // 初始化上传列表
-        initializeUploaderListView();
+        uploaderView
+                .bindEnabledProperty(uploaderToggleButton.selectedProperty())
+                .setUploader(uploader)
+                .load();
 
         // 发送状态切换
         enterToggleButton.selectedProperty()
@@ -113,6 +116,14 @@ public class ChatController {
 
         // 输入框获取默认焦点
         Platform.runLater(() -> inputTextArea.requestFocus());
+
+        // 当输入框内容为空时，禁止发送按钮启用
+        enterToggleButton.disableProperty()
+                .bind(Bindings.createBooleanBinding(
+                        () -> StringUtils.isBlank(inputTextArea.getText()) && !enterToggleButton.isSelected(),
+                        inputTextArea.textProperty(),
+                        enterToggleButton.selectedProperty()
+                ));
 
         // 绑定发送按钮事件
         enterToggleButton
@@ -173,32 +184,6 @@ public class ChatController {
                 });
     }
 
-    private void initializeUploaderListView() {
-
-        // 绑定显示上传列表
-        uploaderListView.visibleProperty()
-                .bind(uploaderToggleButton.selectedProperty());
-        uploaderListView.managedProperty()
-                .bind(uploaderToggleButton.selectedProperty());
-        uploaderToggleButton.selectedProperty()
-                .addListener((obs, oldValue, newValue) -> {
-                    if (newValue) {
-                        uploaderListView.load();
-                    }
-                });
-
-        // 绑定显示上传列表
-        uploaderListView
-                .setOnLoadAction(uploader::listAll)
-                .setOnFlushAction(uploader::flush)
-                .setOnDeleteAction(uploader::deleteByIds)
-                .load();
-    }
-
-
-    /**
-     * 加载历史消息
-     */
     public void loadingMemory(List<Memory.Fragment> fragments) {
         fragments.forEach(fragment -> {
             final var inputText = fragment.requestMessage().text();
@@ -222,16 +207,10 @@ public class ChatController {
         });
     }
 
-    /**
-     * 锁定操作面板
-     */
     public void lockControlPane() {
         controlPane.setDisable(true);
     }
 
-    /**
-     * 解锁操作面板
-     */
     public void unlockControlPane() {
         controlPane.setDisable(false);
     }

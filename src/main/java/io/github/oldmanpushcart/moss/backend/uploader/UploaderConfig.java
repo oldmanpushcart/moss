@@ -12,8 +12,5 @@ import java.time.Duration;
 public class UploaderConfig {
 
     private Duration ossExpiresDuration = Duration.ofHours(48);
-    private String cleanCronExpress = "0 */5 * * * ?";
-    private Integer cleanBatchSize = 100;
-    private Integer cleanQueueCapacity = 1000;
 
 }

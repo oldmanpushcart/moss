@@ -12,13 +12,13 @@
                          prefWidth="24.0"
                          editable="false" resizable="false" sortable="false"
                          style="-fx-alignment: center_left;" />
-            <TableColumn fx:id="pathCol" text="路径"
+            <TableColumn fx:id="sizeCol" text="文件大小"
+                         prefWidth="85.0"
+                         editable="false" resizable="false" sortable="false"
+                         style="-fx-alignment: center_left;" />
+            <TableColumn fx:id="pathCol" text="文件路径"
                          prefWidth="425.0"
                          editable="false" sortable="false"
-                         style="-fx-alignment: center_left;" />
-            <TableColumn fx:id="sizeCol" text="大小"
-                         prefWidth="75.0"
-                         editable="false" resizable="false" sortable="false"
                          style="-fx-alignment: center_left;" />
             <TableColumn fx:id="optsCol" text="操作"
                          prefWidth="75.0"

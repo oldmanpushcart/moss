@@ -2,9 +2,7 @@ package io.github.oldmanpushcart.moss.frontend.javafx.view;
 
 import io.github.oldmanpushcart.moss.backend.uploader.Uploader;
 import javafx.application.Platform;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -13,20 +11,17 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.concurrent.CompletionStage;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
 
-public class UploaderListView extends AnchorPane {
+public class UploaderView extends AnchorPane {
 
     @FXML
     private TableView<Item> uploaderTable;
@@ -67,12 +62,14 @@ public class UploaderListView extends AnchorPane {
     @FXML
     private Button flushButton;
 
-    private Supplier<CompletionStage<List<Uploader.Entry>>> flushAction;
-    private Function<List<Long>, CompletionStage<?>> deleteAction;
-    private Supplier<List<Uploader.Entry>> loadAction;
+    @Setter
+    @Accessors(chain = true)
+    private Uploader uploader;
 
-    public UploaderListView() {
-        final var loader = new FXMLLoader(getClass().getResource("/frontend/fxml/chat/uploader-list-view.fxml"));
+    private final BooleanProperty enabledProperty = new SimpleBooleanProperty();
+
+    public UploaderView() {
+        final var loader = new FXMLLoader(getClass().getResource("/frontend/fxml/chat/uploader-view.fxml"));
         loader.setRoot(this);
         loader.setController(this);
         try {
@@ -80,39 +77,6 @@ public class UploaderListView extends AnchorPane {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    /**
-     * 设置刷新表格的动作
-     *
-     * @param action 刷新动作
-     * @return this
-     */
-    public UploaderListView setOnFlushAction(Supplier<CompletionStage<List<Uploader.Entry>>> action) {
-        this.flushAction = action;
-        return this;
-    }
-
-    /**
-     * 设置删除选中项的动作
-     *
-     * @param action 删除动作
-     * @return this
-     */
-    public UploaderListView setOnDeleteAction(Function<List<Long>, CompletionStage<?>> action) {
-        this.deleteAction = action;
-        return this;
-    }
-
-    /**
-     * 设置加载表格数据的动作
-     *
-     * @param action 加载动作
-     * @return this
-     */
-    public UploaderListView setOnLoadAction(Supplier<List<Uploader.Entry>> action) {
-        this.loadAction = action;
-        return this;
     }
 
     private void lock() {
@@ -127,60 +91,57 @@ public class UploaderListView extends AnchorPane {
      * 加载表格数据
      */
     public void load() {
-        if (null == loadAction) {
-            return;
-        }
         lock();
-        final var items = loadAction.get().stream()
-                .map(Item::new)
-                .toList();
-        uploaderTable.getItems().clear();
-        uploaderTable.getItems().addAll(items);
-        unlock();
+        try {
+            final var items = uploader.listAll().stream()
+                    .map(Item::new)
+                    .toList();
+            uploaderTable.getItems().clear();
+            uploaderTable.getItems().addAll(items);
+        } finally {
+            unlock();
+        }
+    }
+
+    public UploaderView bindEnabledProperty(BooleanProperty enabledProperty) {
+        this.enabledProperty.bind(enabledProperty);
+        return this;
     }
 
     @FXML
     private void initialize() {
 
         initializeTableColumns();
+        bindingEnabledProperty();
 
         // 全选
-        selectAllButton.setOnAction(event -> {
-            for (final var item : uploaderTable.getItems()) {
-                item.checkBoxProperty().get().setSelected(true);
-            }
-        });
+        selectAllButton.setOnAction(event ->
+                uploaderTable.getItems().forEach(item ->
+                        item.checkBoxProperty().get().setSelected(true)));
 
         // 取消全选
-        deselectAllButton.setOnAction(event -> {
-            for (final var item : uploaderTable.getItems()) {
-                item.checkBoxProperty().get().setSelected(false);
-            }
-        });
+        deselectAllButton.setOnAction(event ->
+                uploaderTable.getItems().forEach(item ->
+                        item.checkBoxProperty().get().setSelected(false)));
 
         // 刷新表格
         flushButton.setOnAction(event -> {
-            if (null == flushAction) {
-                return;
-            }
             lock();
-            flushAction.get()
+            uploader.flush()
                     .thenApply(entries -> entries.stream()
                             .map(Item::new)
                             .toList())
-                    .thenAccept(items ->
+                    .thenAccept(items->
                             Platform.runLater(() -> {
                                 uploaderTable.getItems().clear();
                                 uploaderTable.getItems().addAll(items);
-                                unlock();
-                            }));
+                            }))
+                    .whenComplete((items, ex) ->
+                            Platform.runLater(this::unlock));
         });
 
         // 删除选中项
         deleteSelectedButton.setOnAction(event -> {
-            if (null == deleteAction) {
-                return;
-            }
             final var items = uploaderTable.getItems();
             final var deleteItems = items
                     .stream()
@@ -191,10 +152,12 @@ public class UploaderListView extends AnchorPane {
                     .map(Uploader.Entry::entryId)
                     .toList();
             lock();
-            deleteAction.apply(deleteEntryIds)
-                    .thenAccept(unused ->
+            uploader.deleteByIds(deleteEntryIds)
+                    .whenComplete((unused, ex) ->
                             Platform.runLater(() -> {
-                                items.removeAll(deleteItems);
+                                if (null == ex) {
+                                    items.removeAll(deleteItems);
+                                }
                                 unlock();
                             }));
         });
@@ -263,6 +226,15 @@ public class UploaderListView extends AnchorPane {
 
     }
 
+    private void bindingEnabledProperty() {
+        visibleProperty().bind(enabledProperty);
+        managedProperty().bind(enabledProperty);
+        enabledProperty.addListener((obs, oldValue, newValue) -> {
+            if (newValue) {
+                load();
+            }
+        });
+    }
 
     /**
      * 表格项
@@ -286,11 +258,15 @@ public class UploaderListView extends AnchorPane {
                                 setText("删除");
                                 setStyle("-fx-text-fill: #E34234; -fx-font-weight: bold;");
                                 setOnAction(event -> {
-                                    if (null == deleteAction) {
-                                        return;
-                                    }
-                                    deleteAction.apply(List.of(Item.this.entry.entryId()));
-                                    uploaderTable.getItems().remove(Item.this);
+                                    lock();
+                                    uploader.delete(Item.this.entry.entryId())
+                                            .whenComplete((unused, ex) ->
+                                                    Platform.runLater(() -> {
+                                                        if (null == ex) {
+                                                            uploaderTable.getItems().remove(Item.this);
+                                                        }
+                                                        unlock();
+                                                    }));
                                 });
                             }}
                     );

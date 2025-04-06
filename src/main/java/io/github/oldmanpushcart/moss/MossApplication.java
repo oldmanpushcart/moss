@@ -72,49 +72,50 @@ public class MossApplication extends Application {
 
     // 加载Spring容器
     private CompletionStage<?> loadingSpringCtx(SplashController controller) {
-        return CompletableFuture.runAsync(() -> {
+        return CompletableFuture
+                .runAsync(() -> {
 
-            final var preLoader = Thread.currentThread().getContextClassLoader();
-            Thread.currentThread().setContextClassLoader(MossApplication.class.getClassLoader());
-            try {
-                final var arguments = getParameters().getRaw().toArray(new String[0]);
-                final var springApp = new SpringApplication(MossApplication.class);
-                springApp.addListeners(
+                    final var preLoader = Thread.currentThread().getContextClassLoader();
+                    Thread.currentThread().setContextClassLoader(MossApplication.class.getClassLoader());
+                    try {
+                        final var arguments = getParameters().getRaw().toArray(new String[0]);
+                        final var springApp = new SpringApplication(MossApplication.class);
+                        springApp.addListeners(
 
-                        // 监听启动开始
-                        (ApplicationListener<ApplicationStartingEvent>) event ->
-                                Platform.runLater(controller::updateProgressBegin),
+                                // 监听启动开始
+                                (ApplicationListener<ApplicationStartingEvent>) event ->
+                                        Platform.runLater(controller::updateProgressBegin),
 
-                        // 监听启动进度
-                        (ApplicationListener<BootEvent>) event ->
-                                Platform.runLater(() -> controller.updateProgress(event.progress(), event.tips())),
+                                // 监听启动进度
+                                (ApplicationListener<BootEvent>) event ->
+                                        Platform.runLater(() -> controller.updateProgress(event.progress(), event.tips())),
 
-                        // 监听启动完成
-                        (ApplicationListener<ApplicationReadyEvent>) event ->
-                                Platform.runLater(controller::updateProgressFinish)
+                                // 监听启动完成
+                                (ApplicationListener<ApplicationReadyEvent>) event ->
+                                        Platform.runLater(controller::updateProgressFinish)
 
-                );
-                springCtx = springApp.run(arguments);
-            } finally {
-                Thread.currentThread().setContextClassLoader(preLoader);
-            }
-        });
+                        );
+                        springCtx = springApp.run(arguments);
+                    } finally {
+                        Thread.currentThread().setContextClassLoader(preLoader);
+                    }
+                });
     }
 
     // 显示主窗口
     private CompletionStage<?> displayMainStage(Stage stage) {
-        final var chatController = springCtx.getBean(ChatController.class);
+
         return PlatformUtils
 
                 // 加载主界面
-                .runOnPlatform(() -> {
+                .runLaterOnPlatform(() -> {
 
                     // 加载ChatController
                     final var loader = new FXMLLoader(getClass().getResource("/frontend/fxml/chat/chat.fxml"));
-                    loader.setControllerFactory(clazz -> chatController);
+                    loader.setControllerFactory(springCtx::getBean);
                     loader.load();
 
-                    // 锁定操作面板
+                    final var chatController = loader.<ChatController>getController();
                     chatController.lockControlPane();
 
                     // 渲染主界面
@@ -129,25 +130,19 @@ public class MossApplication extends Application {
                     stage.setHeight(800);
                     stage.show();
 
+                    return chatController;
                 })
 
-                // 加载记忆体
-                .thenCompose(unused -> {
-                    final var memory = springCtx.getBean(Memory.class);
-                    final var fragments = memory.recall();
-                    return PlatformUtils.runOnPlatform(() -> {
-
-                        // 渲染记忆体内容
+                // 异步加载记忆
+                .thenAccept(chatController -> {
+                    final var fragments = springCtx.getBean(Memory.class).recall();
+                    Platform.runLater(() -> {
                         chatController.loadingMemory(fragments);
-
-                        // 解锁操作面板
                         chatController.unlockControlPane();
-
                     });
                 });
 
     }
-
 
     @Override
     public void stop() {
