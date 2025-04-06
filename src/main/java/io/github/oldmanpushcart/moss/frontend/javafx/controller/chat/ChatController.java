@@ -7,7 +7,6 @@ import io.github.oldmanpushcart.moss.backend.uploader.Uploader;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.AttachmentListView;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.MessageView;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.UploaderView;
-import io.micrometer.common.util.StringUtils;
 import io.reactivex.rxjava3.core.Flowable;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -26,6 +25,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

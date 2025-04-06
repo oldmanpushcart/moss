@@ -2,6 +2,7 @@ package io.github.oldmanpushcart.moss.frontend.javafx.view;
 
 import io.github.oldmanpushcart.moss.frontend.commonmark.extension.VideoLinkHtmlExtension;
 import io.github.oldmanpushcart.moss.frontend.javafx.JsBridge;
+import io.github.oldmanpushcart.moss.util.JacksonUtils;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -28,7 +29,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Objects.requireNonNull;
-import static org.apache.commons.text.StringEscapeUtils.escapeEcmaScript;
 
 public class MessageView extends AnchorPane {
 
@@ -150,17 +150,17 @@ public class MessageView extends AnchorPane {
         contentProperty
                 .addListener((obs, oldValue, newValue) -> {
 
-                    final var htmlContent = htmlRenderer.render(markdownParser.parse(newValue));
-                    final var innerHtml = escapeEcmaScript(htmlContent);
+                    final var innerHtml = htmlRenderer.render(markdownParser.parse(newValue));
+                    final var escapedHtml = JacksonUtils.toJson(innerHtml);
 
                     executeScriptSafely(() -> {
 
                         final var engine = contentWebView.getEngine();
 
                         // 修改聊天内容
-                        engine.executeScript("document.getElementById('message-content').innerHTML = '%s';"
+                        engine.executeScript("document.getElementById('message-content').innerHTML = %s;"
                                 .formatted(
-                                        innerHtml
+                                        escapedHtml
                                 ));
 
                         // 自适应高度

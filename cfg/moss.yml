@@ -33,6 +33,8 @@ moss:
       oss-expires-duration: 48h
 
     # 通义千问
+    # 需要设置阿里云百炼模型API-KEY，请配置环境变量${DASHSCOPE_AK}，或直接在配置项/moss/backend/dashscope/api-key给出
+    # 百炼API-KEY可以在 https://bailian.console.aliyun.com/apiKey=1?apiKey=1#/api-key 中完成注册和申请
     dashscope:
       api-key: ${DASHSCOPE_AK}
       http:
@@ -45,6 +47,8 @@ moss:
     extra:
 
       # 高德地图扩展
+      # 需要高德API-KEY，请配置环境变量${AMAP_MAPS_API_KEY}，或直接在配置项/moss/backend/extra/amap/api-key给出
+      # 高德API-KEY可以在 https://console.amap.com/dev/key/app 中完成注册和申请
       amap:
         enabled: true
         api-key: ${AMAP_MAPS_API_KEY}
