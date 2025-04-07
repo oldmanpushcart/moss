@@ -56,3 +56,15 @@ moss:
           connect-timeout: 30s
           read-timeout: 30s
           write-timeout: 30s
+
+      # 日历扩展
+      caldav:
+        enabled: true
+        host: ${CALENDAR_CALDAV_HOST}
+        username: ${CALENDAR_CALDAV_USERNAME}
+        password: ${CALENDAR_CALDAV_PASSWORD}
+        location: ${CALENDAR_CALDAV_LOCATION}
+        http:
+          connect-timeout: 30s
+          read-timeout: 30s
+          write-timeout: 30s
