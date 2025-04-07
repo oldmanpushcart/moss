@@ -24,7 +24,7 @@ import static io.github.oldmanpushcart.moss.backend.extra.caldav.util.CaldavUtil
 
 @Component
 @ChatFnName("caldav_query_events")
-@ChatFnDescription("查询日历事件：根据时间范围查询日历事件，当用户询问一段时间范围内的会议时候使用。查询出来的只是事件地址，需要结合使用caldav_batch_get_events配合查询详细信息。")
+@ChatFnDescription("查询日历事件：根据时间范围查询日历事件，当用户询问一段时间范围内的会议时候使用。")
 public class CaldavQueryEventFunction implements ChatFunction<CaldavQueryEventFunction.Parameter, CaldavQueryEventFunction.Result> {
 
     @Autowired

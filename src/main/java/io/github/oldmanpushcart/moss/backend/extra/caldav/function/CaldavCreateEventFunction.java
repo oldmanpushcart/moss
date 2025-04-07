@@ -37,7 +37,7 @@ public class CaldavCreateEventFunction implements ChatFunction<CaldavCreateEvent
     @Override
     public CompletionStage<Result> call(Caller caller, Parameter parameter) {
 
-        final var uuid = UUID.randomUUID().toString().replace("-","");
+        final var uuid = UUID.randomUUID().toString();
         final var putBody = """
                 BEGIN:VCALENDAR
                 VERSION:2.0
