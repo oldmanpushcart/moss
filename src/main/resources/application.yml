@@ -1,15 +1,10 @@
 spring:
 
   datasource:
-    url: jdbc:sqlite:./data/moss.db
+    url: jdbc:sqlite:./data/moss.db?enable_load_extension=true
     driver-class-name: org.sqlite.JDBC
-
-  #  这个配置是留给RAG使用，暂不开启
-  #  datasource:
-  #    url: jdbc:sqlite:./data/moss.db?enable_load_extension=true
-  #    driver-class-name: org.sqlite.JDBC
-  #    hikari:
-  #      connection-init-sql: SELECT load_extension('${SQLITE_VEC_LIB}');
+    hikari:
+      connection-init-sql: SELECT load_extension('${SQLITE_VEC_LIB}');
 
   sql:
     init:
