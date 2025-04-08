@@ -61,7 +61,7 @@ public class ChatterImpl implements Chatter {
                 .option(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true)
                 .option(ChatOptions.ENABLE_WEB_SEARCH, true)
                 .option(ChatOptions.SEARCH_OPTIONS, new ChatSearchOption() {{
-                    forcedSearch(true);
+                    forcedSearch(false);
                     searchStrategy(SearchStrategy.STANDARD);
                     enableSource();
                 }})
