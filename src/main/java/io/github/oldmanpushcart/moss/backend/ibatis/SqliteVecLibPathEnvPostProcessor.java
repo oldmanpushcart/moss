@@ -2,7 +2,6 @@ package io.github.oldmanpushcart.moss.backend.ibatis;
 
 import io.github.oldmanpushcart.moss.util.env.ArchType;
 import io.github.oldmanpushcart.moss.util.env.OsType;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;
