@@ -1,17 +1,16 @@
 package io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor;
 
 import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
+import io.github.oldmanpushcart.dashscope4j.Interceptor;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatModel;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatOptions;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatRequest;
-import io.github.oldmanpushcart.dashscope4j.api.chat.ChatResponse;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.Tool;
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFunction;
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFunctionTool;
 import io.github.oldmanpushcart.moss.util.CommonUtils;
 import io.github.oldmanpushcart.moss.util.JacksonUtils;
-import io.reactivex.rxjava3.core.Flowable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +26,7 @@ import static java.util.concurrent.CompletableFuture.completedStage;
  * 路由工具拦截器
  */
 @Component
-public class RoutingToolsChatInterceptor implements ChatInterceptor {
+public class RoutingToolsChatInterceptor implements Interceptor {
 
     private final Set<ChatFunctionTool> tools;
 
@@ -43,10 +42,15 @@ public class RoutingToolsChatInterceptor implements ChatInterceptor {
     }
 
     @Override
-    public CompletionStage<Flowable<ChatResponse>> intercept(Chain chain) {
-        return completedStage(chain.request())
+    public CompletionStage<?> intercept(Chain chain) {
+
+        if (!(chain.request() instanceof ChatRequest _request)) {
+            return chain.process(chain.request());
+        }
+
+        return completedStage(_request)
                 .thenCompose(request ->
-                        routingTools(chain.dashscope(), request)
+                        routingTools(chain.client(), request)
                                 .thenApply(tools -> {
                                     if (tools.isEmpty()) {
                                         return request;

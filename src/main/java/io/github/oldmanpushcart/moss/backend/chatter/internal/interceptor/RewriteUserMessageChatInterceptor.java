@@ -1,17 +1,17 @@
 package io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor;
 
+import io.github.oldmanpushcart.dashscope4j.Interceptor;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatRequest;
-import io.github.oldmanpushcart.dashscope4j.api.chat.ChatResponse;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
 import io.github.oldmanpushcart.moss.util.JacksonUtils;
-import io.reactivex.rxjava3.core.Flowable;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
+import static io.github.oldmanpushcart.moss.backend.dashscope.util.DashscopeUtils.requireLastUserMessage;
 import static io.github.oldmanpushcart.moss.util.FileUtils.probeContentType;
 import static java.util.Collections.emptyList;
 
@@ -19,11 +19,15 @@ import static java.util.Collections.emptyList;
  * 重写用户输入信息拦截器
  */
 @Component
-public class RewriteUserMessageChatInterceptor implements ChatInterceptor {
+public class RewriteUserMessageChatInterceptor implements Interceptor {
 
     @Override
-    public CompletionStage<Flowable<ChatResponse>> intercept(Chain chain) {
-        final var request = chain.request();
+    public CompletionStage<?> intercept(Chain chain) {
+
+        if (!(chain.request() instanceof ChatRequest request)) {
+            return chain.process(chain.request());
+        }
+
         final var newRequest = ChatRequest.newBuilder(request)
                 .messages(requireHistoryMessages(request))
                 .addMessage(rewriteLastUserMessage(request))
@@ -39,20 +43,6 @@ public class RewriteUserMessageChatInterceptor implements ChatInterceptor {
         return request.messages().size() == 1
                 ? emptyList()
                 : request.messages().subList(0, request.messages().size() - 1);
-    }
-
-    /*
-     * 提取最后一条用户输入信息
-     * 1. 消息列表中下标为n-1的消息为用户输入消息
-     * 2. 如果消息列表中下标为n-1的消息不是用户输入消息，则抛出异常
-     */
-    private Message requireLastUserMessage(ChatRequest request) {
-        final var messages = request.messages();
-        final var lastMessage = messages.get(messages.size() - 1);
-        if (lastMessage.role() != Message.Role.USER) {
-            throw new IllegalArgumentException("Last message not user message!");
-        }
-        return lastMessage;
     }
 
 

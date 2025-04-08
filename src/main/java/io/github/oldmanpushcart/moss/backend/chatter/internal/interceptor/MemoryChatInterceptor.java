@@ -1,5 +1,6 @@
 package io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor;
 
+import io.github.oldmanpushcart.dashscope4j.Interceptor;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatOptions;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatRequest;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatResponse;
@@ -15,19 +16,24 @@ import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Stream;
 
+import static io.github.oldmanpushcart.moss.backend.dashscope.util.DashscopeUtils.requireLastUserMessage;
+
 /**
  * 对话记忆拦截器
  */
 @AllArgsConstructor(onConstructor_ = @Autowired)
 @Component
-public class MemoryChatInterceptor implements ChatInterceptor {
+public class MemoryChatInterceptor implements Interceptor {
 
     private final Memory memory;
 
     @Override
-    public CompletionStage<Flowable<ChatResponse>> intercept(Chain chain) {
+    public CompletionStage<?> intercept(Chain chain) {
 
-        final var request = chain.request();
+        if (!(chain.request() instanceof ChatRequest request)) {
+            return chain.process(chain.request());
+        }
+
         final var requestMessage = requireLastUserMessage(request);
         final var newRequest = ChatRequest.newBuilder(request)
                 .messages(recall(request))
@@ -36,30 +42,36 @@ public class MemoryChatInterceptor implements ChatInterceptor {
 
         final var stringBuf = new StringBuilder();
         return chain.process(newRequest)
-                .thenApply(responseFlow -> responseFlow
-                        .doOnNext(response -> {
+                .thenApply(v -> {
+                    if (!(v instanceof Flowable)) {
+                        return v;
+                    }
+                    @SuppressWarnings("unchecked") final var responseFlow = (Flowable<ChatResponse>) v;
+                    return responseFlow
+                            .doOnNext(response -> {
 
-                            /*
-                             * 如果不是增量输出，则说明是全量输出
-                             * 需要每次均清空缓冲区
-                             */
-                            final var isIncrementalOutput = request.option().has(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true);
-                            if (!isIncrementalOutput) {
-                                stringBuf.setLength(0);
-                            }
+                                /*
+                                 * 如果不是增量输出，则说明是全量输出
+                                 * 需要每次均清空缓冲区
+                                 */
+                                final var isIncrementalOutput = request.option().has(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true);
+                                if (!isIncrementalOutput) {
+                                    stringBuf.setLength(0);
+                                }
 
-                            // 将当前输出添加到输出缓存中
-                            final var text = response.output().best().message().text();
-                            stringBuf.append(text);
+                                // 将当前输出添加到输出缓存中
+                                final var text = response.output().best().message().text();
+                                stringBuf.append(text);
 
-                        })
-                        .doOnComplete(() -> {
-                            final var fragment = new Memory.Fragment() {{
-                                requestMessage(requestMessage);
-                                responseMessage(Message.ofAi(stringBuf.toString()));
-                            }};
-                            memory.saveOrUpdate(fragment);
-                        }));
+                            })
+                            .doOnComplete(() -> {
+                                final var fragment = new Memory.Fragment() {{
+                                    requestMessage(requestMessage);
+                                    responseMessage(Message.ofAi(stringBuf.toString()));
+                                }};
+                                memory.saveOrUpdate(fragment);
+                            });
+                });
     }
 
     private List<Message> recall(ChatRequest request) {
@@ -70,15 +82,6 @@ public class MemoryChatInterceptor implements ChatInterceptor {
         return fragments.stream()
                 .flatMap(f -> Stream.of(f.requestMessage(), f.responseMessage()))
                 .toList();
-    }
-
-    private Message requireLastUserMessage(ChatRequest request) {
-        final var messages = request.messages();
-        final var lastMessage = messages.get(messages.size() - 1);
-        if (lastMessage.role() != Message.Role.USER) {
-            throw new IllegalArgumentException("Last message not user message!");
-        }
-        return lastMessage;
     }
 
 }

@@ -1,10 +1,9 @@
 package io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor;
 
+import io.github.oldmanpushcart.dashscope4j.Interceptor;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatRequest;
-import io.github.oldmanpushcart.dashscope4j.api.chat.ChatResponse;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.moss.backend.chatter.ChatterConfig;
-import io.reactivex.rxjava3.core.Flowable;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,13 +20,16 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 @AllArgsConstructor(onConstructor_ = @Autowired)
 @Component
-public class SystemPromptChatInterceptor implements ChatInterceptor {
+public class SystemPromptChatInterceptor implements Interceptor {
 
     private final ChatterConfig config;
 
     @Override
-    public CompletionStage<Flowable<ChatResponse>> intercept(Chain chain) {
-        final var request = chain.request();
+    public CompletionStage<?> intercept(Chain chain) {
+
+        if (!(chain.request() instanceof ChatRequest request)) {
+            return chain.process(chain.request());
+        }
 
         /*
          * 检查系统提示语文件是否存在且有效
