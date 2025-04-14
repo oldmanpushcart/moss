@@ -14,7 +14,7 @@ import java.util.concurrent.CompletionStage;
 
 @Component
 @ChatFnName("system_datetime")
-@ChatFnDescription("获取系统当前时间")
+@ChatFnDescription("获取系统当前时间。当用户询问的问题和时间相关时，比如下周、本周、明天、后天等，必须使用此函数校准当前时间。")
 public class SystemDateTimeFunction implements ChatFunction<SystemDateTimeFunction.Parameter, SystemDateTimeFunction.Result> {
 
     private static final String pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS";

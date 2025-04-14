@@ -15,23 +15,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.concurrent.CompletableFuture.completedStage;
+import static io.github.oldmanpushcart.moss.backend.dashscope.util.DashscopeUtils.*;
 
 /**
  * 路由工具拦截器
  */
 @Component
-public class RoutingToolsChatInterceptor implements Interceptor {
+public class RoutingToolsInterceptor implements Interceptor {
 
     private final Set<ChatFunctionTool> tools;
 
     @Autowired
-    public RoutingToolsChatInterceptor(Set<ChatFunction<?, ?>> functions) {
+    public RoutingToolsInterceptor(Set<ChatFunction<?, ?>> functions) {
         this.tools = buildingTools(functions);
     }
 
@@ -44,22 +45,32 @@ public class RoutingToolsChatInterceptor implements Interceptor {
     @Override
     public CompletionStage<?> intercept(Chain chain) {
 
-        if (!(chain.request() instanceof ChatRequest _request)) {
+        // 只处理对话请求
+        if (!(chain.request() instanceof ChatRequest request)) {
             return chain.process(chain.request());
         }
 
-        return completedStage(_request)
-                .thenCompose(request ->
-                        routingTools(chain.client(), request)
-                                .thenApply(tools -> {
-                                    if (tools.isEmpty()) {
-                                        return request;
-                                    }
-                                    return ChatRequest.newBuilder(request)
-                                            .option(ChatOptions.ENABLE_PARALLEL_TOOL_CALLS, true)
-                                            .tools(tools)
-                                            .build();
-                                }))
+        // 只处理最后一个消息是用户消息的请求
+        if (!isLastMessageFromUser(request)) {
+            return chain.process(chain.request());
+        }
+
+        // 只处理对话管理器发起的请求
+        if (!isCameFromChatter(request)) {
+            return chain.process(chain.request());
+        }
+
+        return routingTools(chain.client(), request)
+                .thenApply(tools -> {
+                    if (tools.isEmpty()) {
+                        return request;
+                    }
+                    return ChatRequest.newBuilder(request)
+                            .context(RoutingToolsInterceptor.class, this)
+                            .option(ChatOptions.ENABLE_PARALLEL_TOOL_CALLS, true)
+                            .tools(tools)
+                            .build();
+                })
                 .thenCompose(chain::process);
     }
 
@@ -67,9 +78,6 @@ public class RoutingToolsChatInterceptor implements Interceptor {
         final var choiceToolsRequest = ChatRequest.newBuilder()
                 .model(ChatModel.QWEN_TURBO)
                 .option(ChatOptions.RESPONSE_FORMAT, ChatOptions.ResponseFormat.JSON)
-                .addMessages(request.messages().stream()
-                        .filter(message -> CommonUtils.isIn(message.role(), Message.Role.USER, Message.Role.AI))
-                        .toList())
                 .building(builder -> {
 
                     final var toolsMap = tools.stream()
@@ -79,23 +87,33 @@ public class RoutingToolsChatInterceptor implements Interceptor {
                                     ChatFunctionTool.Meta::description
                             ));
 
-                    final var toolsJson = JacksonUtils.toJson(toolsMap);
-
                     builder.addMessage(Message.ofSystem("""
-                            你是一个智能函数路由助手，负责根据用户的输入上下文选择最合适的函数进行调用。
+                            你是一个智能函数路由助手，负责根据用户的输入的意图选择最合适的函数进行调用。
                             
                             ### 行为要求
-                            - 需要提取出函数名并组成字符串数组
-                            - 请仅输出JSON
-                            - 不要以markdown的格式输出
-                            - 不要输出其他无关内容
+                            - 需要提取出函数名并组成字符串数组，仅以JSON格式输出，不要MARKDOWN渲染
+                            - 严格按照输出格式的要求输出
+                            - 严格要求你回答的内容仅限于函数路由，不要输出与函数路由无关内容
+                            - 如匹配不到符合意图的函数，则输出为空
                             
                             ### 输出格式
                             ['函数1','函数2‘，’函数3']
                             
                             ### 函数列表
                             %s
-                            """.formatted(toolsJson)));
+                            """.formatted(
+                            JacksonUtils.toJson(toolsMap)
+                    )));
+
+                })
+                .building(builder-> {
+
+                    final var messages = request.messages()
+                            .stream()
+                            .filter(message-> CommonUtils.isIn(message.role(), Message.Role.USER, Message.Role.AI))
+                            .toList();
+
+                    builder.addMessages(messages);
 
                 })
                 .build();

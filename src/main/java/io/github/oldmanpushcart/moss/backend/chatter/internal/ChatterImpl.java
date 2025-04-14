@@ -4,10 +4,10 @@ import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.dashscope4j.api.chat.*;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
-import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.MemoryChatInterceptor;
-import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.RewriteUserMessageChatInterceptor;
-import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.RoutingToolsChatInterceptor;
-import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.SystemPromptChatInterceptor;
+import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.MemoryInterceptor;
+import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.RewriteUserMessageInterceptor;
+import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.RoutingToolsInterceptor;
+import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.SystemPromptInterceptor;
 import io.reactivex.rxjava3.core.Flowable;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,10 +26,10 @@ import java.util.concurrent.CompletionStage;
 public class ChatterImpl implements Chatter {
 
     private final DashscopeClient dashscope;
-    private final MemoryChatInterceptor memoryChatInterceptor;
-    private final RoutingToolsChatInterceptor routingToolsChatInterceptor;
-    private final SystemPromptChatInterceptor systemPromptChatInterceptor;
-    private final RewriteUserMessageChatInterceptor rewriteUserMessageChatInterceptor;
+    private final MemoryInterceptor memoryInterceptor;
+    private final RoutingToolsInterceptor routingToolsInterceptor;
+    private final SystemPromptInterceptor systemPromptInterceptor;
+    private final RewriteUserMessageInterceptor rewriteUserMessageInterceptor;
 
     @Override
     public CompletionStage<Flowable<ChatResponse>> chat(Context context, String inputText) {
@@ -55,10 +55,10 @@ public class ChatterImpl implements Chatter {
                     enableSource();
                 }})
                 .addInterceptors(List.of(
-                        memoryChatInterceptor,
-                        routingToolsChatInterceptor,
-                        systemPromptChatInterceptor,
-                        rewriteUserMessageChatInterceptor
+                        memoryInterceptor,
+                        systemPromptInterceptor,
+                        rewriteUserMessageInterceptor,
+                        routingToolsInterceptor
                 ))
                 .addMessage(Message.ofUser(inputText))
                 .build();

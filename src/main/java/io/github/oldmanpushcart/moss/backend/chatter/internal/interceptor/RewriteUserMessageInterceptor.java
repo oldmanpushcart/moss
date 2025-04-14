@@ -8,41 +8,42 @@ import io.github.oldmanpushcart.moss.util.JacksonUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
-import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 
-import static io.github.oldmanpushcart.moss.backend.dashscope.util.DashscopeUtils.requireLastUserMessage;
+import static io.github.oldmanpushcart.moss.backend.dashscope.util.DashscopeUtils.*;
 import static io.github.oldmanpushcart.moss.util.FileUtils.probeContentType;
-import static java.util.Collections.emptyList;
 
 /**
  * 重写用户输入信息拦截器
  */
 @Component
-public class RewriteUserMessageChatInterceptor implements Interceptor {
+public class RewriteUserMessageInterceptor implements Interceptor {
 
     @Override
     public CompletionStage<?> intercept(Chain chain) {
 
+        // 只处理对话请求
         if (!(chain.request() instanceof ChatRequest request)) {
             return chain.process(chain.request());
         }
 
+        // 只处理最后一个消息是用户消息的请求
+        if (!isLastMessageFromUser(request)) {
+            return chain.process(chain.request());
+        }
+
+        // 只处理对话管理器发起的请求
+        if (!isCameFromChatter(request)) {
+            return chain.process(chain.request());
+        }
+
         final var newRequest = ChatRequest.newBuilder(request)
+                .context(RewriteUserMessageInterceptor.class, this)
                 .messages(requireHistoryMessages(request))
                 .addMessage(rewriteLastUserMessage(request))
                 .build();
         return chain.process(newRequest);
-    }
-
-    /*
-     * 提取历史信息
-     * 1. 消息列表中下标范围[0,n-1)信息为历史信息
-     */
-    private List<Message> requireHistoryMessages(ChatRequest request) {
-        return request.messages().size() == 1
-                ? emptyList()
-                : request.messages().subList(0, request.messages().size() - 1);
     }
 
 
@@ -51,13 +52,8 @@ public class RewriteUserMessageChatInterceptor implements Interceptor {
      * 1. 用户输入内容中追加附件文件信息
      */
     private Message rewriteLastUserMessage(ChatRequest request) {
-        final var lastUserMessage = requireLastUserMessage(request);
-
+        final var lastUserMessage = requireLastMessageFromUser(request);
         final var context = request.context(Chatter.Context.class);
-        if (null == context) {
-            return lastUserMessage;
-        }
-
         final var resource = context.getAttachments()
                 .stream()
                 .filter(file -> file.exists() && file.canRead() && file.isFile())
@@ -68,14 +64,14 @@ public class RewriteUserMessageChatInterceptor implements Interceptor {
                         }})
                 .toList();
         return Message.ofUser("""
-                用户输入：
-                %s
-                
                 参考资料：
                 %s
+                
+                用户输入：
+                %s
                 """.formatted(
-                lastUserMessage.text(),
-                JacksonUtils.toJson(resource)
+                JacksonUtils.toJson(resource),
+                lastUserMessage.text()
         ));
     }
 
