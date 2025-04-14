@@ -12,7 +12,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <dashscope4j.version>3.1.1-SNAPSHOT</dashscope4j.version>
+        <dashscope4j.version>3.1.1</dashscope4j.version>
         <javafx.version>17.0.14</javafx.version>
         <spring-boot.version>3.4.4</spring-boot.version>
         <common-mark.version>0.24.0</common-mark.version>
