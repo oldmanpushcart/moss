@@ -4,14 +4,14 @@ import io.github.oldmanpushcart.dashscope4j.Interceptor;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatRequest;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
+import io.github.oldmanpushcart.moss.backend.knowledge.Knowledge;
 import io.github.oldmanpushcart.moss.util.JacksonUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 
-import static io.github.oldmanpushcart.moss.backend.dashscope.util.DashscopeUtils.*;
+import static io.github.oldmanpushcart.moss.util.DashscopeUtils.*;
 import static io.github.oldmanpushcart.moss.util.FileUtils.probeContentType;
 
 /**
@@ -54,7 +54,12 @@ public class RewriteUserMessageInterceptor implements Interceptor {
     private Message rewriteLastUserMessage(ChatRequest request) {
         final var lastUserMessage = requireLastMessageFromUser(request);
         final var context = request.context(Chatter.Context.class);
-        final var resource = context.getAttachments()
+        final var knowledgeMatchItems = context.getKnowledgeMatchResult()
+                .items()
+                .stream()
+                .map(Knowledge.MatchResult.Item::content)
+                .toList();
+        final var attachments = context.getAttachments()
                 .stream()
                 .filter(file -> file.exists() && file.canRead() && file.isFile())
                 .map(file ->
@@ -67,10 +72,14 @@ public class RewriteUserMessageInterceptor implements Interceptor {
                 参考资料：
                 %s
                 
+                输入附件：
+                %s
+                
                 用户输入：
                 %s
                 """.formatted(
-                JacksonUtils.toJson(resource),
+                JacksonUtils.toJson(knowledgeMatchItems),
+                JacksonUtils.toJson(attachments),
                 lastUserMessage.text()
         ));
     }

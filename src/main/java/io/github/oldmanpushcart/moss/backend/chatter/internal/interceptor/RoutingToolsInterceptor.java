@@ -15,13 +15,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.github.oldmanpushcart.moss.backend.dashscope.util.DashscopeUtils.*;
+import static io.github.oldmanpushcart.moss.util.DashscopeUtils.isCameFromChatter;
+import static io.github.oldmanpushcart.moss.util.DashscopeUtils.isLastMessageFromUser;
 
 /**
  * 路由工具拦截器

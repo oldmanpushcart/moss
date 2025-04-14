@@ -21,7 +21,7 @@ import static java.util.Objects.requireNonNull;
 
 @Component
 @ChatFnName("amap_locate")
-@ChatFnDescription("获取当前IP所在的地理位置信息。当前问题需要确定位置时使用")
+@ChatFnDescription("获取当前IP所在的地理位置信息。当问题可能涉及到当前所在城市、位置时候使用。")
 public class AmapLocateFunction implements ChatFunction<AmapLocateFunction.Parameter, AmapLocateFunction.Result> {
 
     @Autowired

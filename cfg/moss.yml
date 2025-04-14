@@ -28,6 +28,24 @@ moss:
     downloader:
       location: ./data/downloads
 
+    knowledge:
+      location: ./data/knowledge
+      allow-mime-wildcards:
+        - application/pdf
+        - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+        - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+        - application/vnd.openxmlformats-officedocument.presentationml.presentation
+        - application/vnd.ms-powerpoint
+        - application/vnd.ms-excel
+        - application/vnd.ms-powerpoint.presentation.macroEnabled.12
+        - application/vnd.ms-powerpoint.slideshow.macroEnabled
+      chunk:
+        size: 500
+        overlap: 100
+      query:
+        limit: 3
+        rewrite-enabled: true
+
     # 文件上传
     uploader:
       oss-expires-duration: 48h

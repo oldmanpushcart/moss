@@ -4,10 +4,7 @@ import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.dashscope4j.api.chat.*;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
-import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.MemoryInterceptor;
-import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.RewriteUserMessageInterceptor;
-import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.RoutingToolsInterceptor;
-import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.SystemPromptInterceptor;
+import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.*;
 import io.reactivex.rxjava3.core.Flowable;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +27,7 @@ public class ChatterImpl implements Chatter {
     private final RoutingToolsInterceptor routingToolsInterceptor;
     private final SystemPromptInterceptor systemPromptInterceptor;
     private final RewriteUserMessageInterceptor rewriteUserMessageInterceptor;
+    private final KnowledgeInterceptor knowledgeInterceptor;
 
     @Override
     public CompletionStage<Flowable<ChatResponse>> chat(Context context, String inputText) {
@@ -57,6 +55,7 @@ public class ChatterImpl implements Chatter {
                 .addInterceptors(List.of(
                         memoryInterceptor,
                         systemPromptInterceptor,
+                        knowledgeInterceptor,
                         rewriteUserMessageInterceptor,
                         routingToolsInterceptor
                 ))

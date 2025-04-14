@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Stream;
 
-import static io.github.oldmanpushcart.moss.backend.dashscope.util.DashscopeUtils.*;
+import static io.github.oldmanpushcart.moss.util.DashscopeUtils.*;
 
 /**
  * 对话记忆拦截器

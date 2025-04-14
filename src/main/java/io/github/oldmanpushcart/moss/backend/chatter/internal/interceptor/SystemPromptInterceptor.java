@@ -3,7 +3,6 @@ package io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor;
 import io.github.oldmanpushcart.dashscope4j.Interceptor;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatRequest;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
-import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
 import io.github.oldmanpushcart.moss.backend.chatter.ChatterConfig;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +11,9 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 
-import static io.github.oldmanpushcart.moss.backend.dashscope.util.DashscopeUtils.isCameFromChatter;
+import static io.github.oldmanpushcart.moss.util.DashscopeUtils.isCameFromChatter;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
