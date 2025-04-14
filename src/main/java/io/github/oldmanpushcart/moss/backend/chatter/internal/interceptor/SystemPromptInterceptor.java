@@ -1,10 +1,9 @@
 package io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor;
 
+import io.github.oldmanpushcart.dashscope4j.Interceptor;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatRequest;
-import io.github.oldmanpushcart.dashscope4j.api.chat.ChatResponse;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.moss.backend.chatter.ChatterConfig;
-import io.reactivex.rxjava3.core.Flowable;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -14,6 +13,7 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
+import static io.github.oldmanpushcart.moss.util.DashscopeUtils.isCameFromChatter;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -21,13 +21,22 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 @AllArgsConstructor(onConstructor_ = @Autowired)
 @Component
-public class SystemPromptChatInterceptor implements ChatInterceptor {
+public class SystemPromptInterceptor implements Interceptor {
 
     private final ChatterConfig config;
 
     @Override
-    public CompletionStage<Flowable<ChatResponse>> intercept(Chain chain) {
-        final var request = chain.request();
+    public CompletionStage<?> intercept(Chain chain) {
+
+        // 只处理对话请求
+        if (!(chain.request() instanceof ChatRequest request)) {
+            return chain.process(chain.request());
+        }
+
+        // 只处理对话管理器发起的请求
+        if (!isCameFromChatter(request)) {
+            return chain.process(chain.request());
+        }
 
         /*
          * 检查系统提示语文件是否存在且有效
@@ -41,6 +50,7 @@ public class SystemPromptChatInterceptor implements ChatInterceptor {
         }
 
         final var newRequest = ChatRequest.newBuilder(request)
+                .context(SystemPromptInterceptor.class, this)
                 .building(builder -> {
                     try {
                         final var prompt = Files.readString(systemPromptLocation, UTF_8);

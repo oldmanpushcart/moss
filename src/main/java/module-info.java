@@ -17,6 +17,8 @@ open module moss {
     requires spring.context;
     requires spring.beans;
     requires spring.core;
+    requires spring.jdbc;
+    requires spring.tx;
 
     requires javafx.fxml;
     requires javafx.web;
@@ -29,5 +31,6 @@ open module moss {
 
     requires org.apache.commons.io;
     requires org.apache.commons.lang3;
+    requires org.apache.tika.core;
 
 }

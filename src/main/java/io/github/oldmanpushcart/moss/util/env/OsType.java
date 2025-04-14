@@ -34,7 +34,7 @@ public enum OsType {
     }
 
     private static OsType getCurrent() {
-        final var osName = System.getProperty("os.name").toLowerCase();
+        final var osName = System.getProperty("os.name").toLowerCase().replaceAll("\\s+", "");
         for (final var osType : OsType.values()) {
             if (osName.contains(osType.name)) {
                 return osType;

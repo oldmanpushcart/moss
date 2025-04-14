@@ -1,6 +1,7 @@
 package io.github.oldmanpushcart.moss.backend.chatter;
 
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatResponse;
+import io.github.oldmanpushcart.moss.backend.knowledge.Knowledge;
 import io.reactivex.rxjava3.core.Flowable;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -31,6 +32,7 @@ public interface Chatter {
 
         private boolean deepThinking;
         private List<File> attachments;
+        private Knowledge.MatchResult knowledgeMatchResult;
         private Long timeline;
 
     }

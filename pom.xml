@@ -12,12 +12,12 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <dashscope4j.version>3.1.0</dashscope4j.version>
+        <dashscope4j.version>3.1.1</dashscope4j.version>
         <javafx.version>17.0.14</javafx.version>
-        <ikonli.version>12.3.1</ikonli.version>
         <spring-boot.version>3.4.4</spring-boot.version>
         <common-mark.version>0.24.0</common-mark.version>
         <lombok.version>1.18.36</lombok.version>
+        <tika.version>3.1.0</tika.version>
     </properties>
 
     <build>
@@ -117,6 +117,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- common-mark -->
         <dependency>
@@ -149,13 +154,23 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.14.0</version>
+            <version>2.18.0</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>${tika.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-parsers-standard-package</artifactId>
+            <version>${tika.version}</version>
         </dependency>
 
     </dependencies>

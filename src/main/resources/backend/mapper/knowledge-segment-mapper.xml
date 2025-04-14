@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.oldmanpushcart.moss.backend.knowledge.internal.dao.KnowledgeSegmentDao">
+
+    <insert id="inserts"
+            useGeneratedKeys="true"
+            keyProperty="segmentId"
+            keyColumn="SEGMENT_ID"
+            parameterType="io.github.oldmanpushcart.moss.backend.knowledge.internal.domain.KnowledgeSegmentDO">
+        INSERT INTO KNOWLEDGE_SEGMENTS
+        (
+            DOCUMENT_ID,
+            POSITION,
+            LENGTH,
+            VECTOR,
+            CREATED_AT
+        )
+        VALUES
+        <foreach collection="segments" item="segment" separator=",">
+            (
+                #{segment.documentId},
+                #{segment.position},
+                #{segment.length},
+                #{segment.vector},
+                CAST(strftime('%s', 'now') ||substr(strftime('%f', 'now'), 4) AS INTEGER)
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteByDocumentId">
+        DELETE FROM KNOWLEDGE_SEGMENTS
+        WHERE
+            DOCUMENT_ID = #{documentId}
+    </delete>
+
+    <select id="queryByDocumentId"
+            resultType="io.github.oldmanpushcart.moss.backend.knowledge.internal.domain.KnowledgeSegmentDO">
+        SELECT
+            <trim suffixOverrides=",">
+                SEGMENT_ID,
+                DOCUMENT_ID,
+                POSITION,
+                LENGTH,
+                CREATED_AT,
+                <if test="isIncludeVector">
+                    VECTOR,
+                </if>
+            </trim>
+        FROM KNOWLEDGE_SEGMENTS
+        WHERE
+            DOCUMENT_ID = #{documentId}
+    </select>
+
+    <select id="matches"
+            resultType="io.github.oldmanpushcart.moss.backend.knowledge.internal.domain.KnowledgeMatchedItemDO">
+        SELECT
+            SEGMENT_ID,
+            DOCUMENT_ID,
+            POSITION,
+            LENGTH,
+            DISTANCE
+        FROM KNOWLEDGE_SEGMENTS
+        WHERE
+            VECTOR MATCH #{query}
+        ORDER BY DISTANCE
+        LIMIT #{limit}
+    </select>
+
+</mapper>

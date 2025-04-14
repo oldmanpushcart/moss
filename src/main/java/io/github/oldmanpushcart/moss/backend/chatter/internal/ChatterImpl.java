@@ -4,11 +4,9 @@ import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.dashscope4j.api.chat.*;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
-import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.MemoryChatInterceptor;
-import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.RewriteUserMessageChatInterceptor;
-import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.RoutingToolsChatInterceptor;
-import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.SystemPromptChatInterceptor;
+import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.*;
 import io.reactivex.rxjava3.core.Flowable;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,32 +18,21 @@ import java.util.concurrent.CompletionStage;
  * 对话管理器实现
  */
 @Slf4j
+@AllArgsConstructor(onConstructor_ = @Autowired)
 @Component
 public class ChatterImpl implements Chatter {
 
-    private final ChatOpFlow chatOpFlow;
-
-    @Autowired
-    public ChatterImpl(
-            DashscopeClient dashscope,
-            MemoryChatInterceptor memoryChatInterceptor,
-            RoutingToolsChatInterceptor routingToolsChatInterceptor,
-            SystemPromptChatInterceptor systemPromptChatInterceptor,
-            RewriteUserMessageChatInterceptor rewriteUserMessageChatInterceptor
-    ) {
-        final var chatOp = dashscope.chat();
-        this.chatOpFlow = InterceptionChatOpFlow.group(dashscope, chatOp::flow, List.of(
-                memoryChatInterceptor,
-                routingToolsChatInterceptor,
-                systemPromptChatInterceptor,
-                rewriteUserMessageChatInterceptor
-        ));
-    }
+    private final DashscopeClient dashscope;
+    private final MemoryInterceptor memoryInterceptor;
+    private final RoutingToolsInterceptor routingToolsInterceptor;
+    private final SystemPromptInterceptor systemPromptInterceptor;
+    private final RewriteUserMessageInterceptor rewriteUserMessageInterceptor;
+    private final KnowledgeInterceptor knowledgeInterceptor;
 
     @Override
     public CompletionStage<Flowable<ChatResponse>> chat(Context context, String inputText) {
         final var request = newChatRequest(context, inputText);
-        return chatOpFlow.flow(request)
+        return dashscope.chat().flow(request)
                 .whenComplete((v,ex)-> {
                     if(null != ex) {
                         log.warn("moss://chat/flow error!", ex);
@@ -61,10 +48,17 @@ public class ChatterImpl implements Chatter {
                 .option(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true)
                 .option(ChatOptions.ENABLE_WEB_SEARCH, true)
                 .option(ChatOptions.SEARCH_OPTIONS, new ChatSearchOption() {{
-                    forcedSearch(true);
+                    forcedSearch(false);
                     searchStrategy(SearchStrategy.STANDARD);
                     enableSource();
                 }})
+                .addInterceptors(List.of(
+                        memoryInterceptor,
+                        systemPromptInterceptor,
+                        knowledgeInterceptor,
+                        rewriteUserMessageInterceptor,
+                        routingToolsInterceptor
+                ))
                 .addMessage(Message.ofUser(inputText))
                 .build();
     }

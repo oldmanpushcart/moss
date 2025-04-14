@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.oldmanpushcart.moss.backend.knowledge.internal.dao.KnowledgeDocumentDao">
+
+    <insert id="insert"
+            useGeneratedKeys="true"
+            keyProperty="documentId"
+            keyColumn="DOCUMENT_ID"
+            parameterType="io.github.oldmanpushcart.moss.backend.knowledge.internal.domain.KnowledgeDocumentDO">
+        INSERT INTO KNOWLEDGE_DOCUMENTS
+        (
+            RESOURCE,
+            RESOURCE_MIME,
+            RESOURCE_LENGTH,
+            RESOURCE_LAST_UPDATED_AT,
+            RESOURCE_CONTENT,
+            CREATED_AT
+        )
+        VALUES (
+            #{resource},
+            #{resourceMime},
+            #{resourceLength},
+            #{resourceLastUpdatedAt},
+            #{resourceContent},
+            CAST(strftime('%s', 'now') || substr(strftime('%f', 'now'), 4) AS INTEGER)
+        )
+    </insert>
+
+    <delete id="deleteById">
+        DELETE FROM KNOWLEDGE_DOCUMENTS
+        WHERE
+            DOCUMENT_ID = #{documentId}
+    </delete>
+
+    <select id="getById"
+            resultType="io.github.oldmanpushcart.moss.backend.knowledge.internal.domain.KnowledgeDocumentDO">
+        SELECT
+            <trim suffixOverrides=",">
+                DOCUMENT_ID,
+                RESOURCE,
+                RESOURCE_MIME,
+                RESOURCE_LENGTH,
+                RESOURCE_LAST_UPDATED_AT,
+                CREATED_AT,
+                <if test="isIncludeContent">
+                    RESOURCE_CONTENT,
+                </if>
+            </trim>
+        FROM KNOWLEDGE_DOCUMENTS
+        WHERE
+            DOCUMENT_ID = #{documentId}
+    </select>
+
+    <select id="getByResource"
+            resultType="io.github.oldmanpushcart.moss.backend.knowledge.internal.domain.KnowledgeDocumentDO">
+        SELECT
+            <trim suffixOverrides=",">
+                DOCUMENT_ID,
+                RESOURCE,
+                RESOURCE_MIME,
+                RESOURCE_LENGTH,
+                RESOURCE_LAST_UPDATED_AT,
+                CREATED_AT,
+                <if test="isIncludeContent">
+                    RESOURCE_CONTENT,
+                </if>
+            </trim>
+        FROM KNOWLEDGE_DOCUMENTS
+        WHERE
+            RESOURCE = #{resource}
+    </select>
+
+    <select id="relevantContent" resultType="java.lang.String">
+        SELECT
+            SUBSTR(RESOURCE_CONTENT, #{position}, #{length})
+        FROM KNOWLEDGE_DOCUMENTS
+        WHERE
+            DOCUMENT_ID = #{documentId}
+    </select>
+
+    <select id="queryByPage"
+            resultType="io.github.oldmanpushcart.moss.backend.knowledge.internal.domain.KnowledgeDocumentDO">
+        SELECT
+            <trim suffixOverrides=",">
+                DOCUMENT_ID,
+                RESOURCE,
+                RESOURCE_MIME,
+                RESOURCE_LENGTH,
+                RESOURCE_LAST_UPDATED_AT,
+                CREATED_AT,
+                <if test="isIncludeContent">
+                    RESOURCE_CONTENT,
+                </if>
+            </trim>
+        FROM KNOWLEDGE_DOCUMENTS
+        ORDER BY DOCUMENT_ID ASC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+</mapper>

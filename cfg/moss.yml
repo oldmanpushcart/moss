@@ -28,6 +28,24 @@ moss:
     downloader:
       location: ./data/downloads
 
+    knowledge:
+      location: ./data/knowledge
+      allow-mime-wildcards:
+        - application/pdf
+        - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+        - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+        - application/vnd.openxmlformats-officedocument.presentationml.presentation
+        - application/vnd.ms-powerpoint
+        - application/vnd.ms-excel
+        - application/vnd.ms-powerpoint.presentation.macroEnabled.12
+        - application/vnd.ms-powerpoint.slideshow.macroEnabled
+      chunk:
+        size: 500
+        overlap: 100
+      query:
+        limit: 3
+        rewrite-enabled: true
+
     # 文件上传
     uploader:
       oss-expires-duration: 48h
@@ -52,6 +70,18 @@ moss:
       amap:
         enabled: true
         api-key: ${AMAP_MAPS_API_KEY}
+        http:
+          connect-timeout: 30s
+          read-timeout: 30s
+          write-timeout: 30s
+
+      # 日历扩展
+      caldav:
+        enabled: true
+        host: ${CALENDAR_CALDAV_HOST}
+        username: ${CALENDAR_CALDAV_USERNAME}
+        password: ${CALENDAR_CALDAV_PASSWORD}
+        location: ${CALENDAR_CALDAV_LOCATION}
         http:
           connect-timeout: 30s
           read-timeout: 30s
