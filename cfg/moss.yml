@@ -20,9 +20,9 @@ moss:
 
     # 对话记忆体
     memory:
-      max-tokens: 100000
-      max-count: 100
-      duration: 6h
+      max-count: 20
+      max-tokens: 5000
+      max-duration: 1h
 
     # 文件下载
     downloader:

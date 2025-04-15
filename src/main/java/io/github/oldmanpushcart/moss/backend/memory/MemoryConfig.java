@@ -17,16 +17,16 @@ public class MemoryConfig {
     /**
      * 最大数量
      */
-    private Integer maxCount = 1000;
+    private Integer maxCount = 20;
 
     /**
      * 最大Tokens
      */
-    private Long maxTokens = 32767L;
+    private Long maxTokens = 5000L;
 
     /**
      * 持续时间
      */
-    private Duration maxDuration = Duration.ofDays(7);
+    private Duration maxDuration = Duration.ofHours(1);
 
 }
