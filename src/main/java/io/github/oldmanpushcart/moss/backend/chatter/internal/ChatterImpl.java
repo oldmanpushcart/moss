@@ -56,10 +56,10 @@ public class ChatterImpl implements Chatter {
                 }})
                 .addInterceptors(List.of(
                         memoryInterceptor,
-                        systemPromptInterceptor,
                         knowledgeInterceptor,
                         rewriteUserMessageInterceptor,
-                        routingToolsInterceptor
+                        routingToolsInterceptor,
+                        systemPromptInterceptor
                 ))
                 .addMessage(Message.ofUser(inputText))
                 .build();
