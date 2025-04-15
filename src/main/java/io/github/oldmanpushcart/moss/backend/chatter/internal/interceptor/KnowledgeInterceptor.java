@@ -36,9 +36,14 @@ public class KnowledgeInterceptor implements Interceptor {
             return chain.process(chain.request());
         }
 
+        // 只处理启用了知识库的请求
+        final var context = request.context(Chatter.Context.class);
+        if(!context.isKnowledgeEnabled()) {
+            return chain.process(chain.request());
+        }
+
         return matches(request)
                 .thenCompose(result -> {
-                    final var context = request.context(Chatter.Context.class);
                     context.setKnowledgeMatchResult(result);
                     return chain.process(request);
                 });
@@ -47,7 +52,7 @@ public class KnowledgeInterceptor implements Interceptor {
     private CompletionStage<Knowledge.MatchResult> matches(ChatRequest request) {
         final var query = requireLastMessageFromUser(request).text();
         final var option = new Knowledge.MatchOption()
-                .history(requireHistoryMessages(request));
+                .setHistory(requireHistoryMessages(request));
         return knowledge.matches(query, option);
     }
 

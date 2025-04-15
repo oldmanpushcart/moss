@@ -1,7 +1,5 @@
 package io.github.oldmanpushcart.moss.util;
 
-import org.apache.tika.Tika;
-
 import java.io.IOException;
 import java.nio.file.*;
 
@@ -222,16 +220,13 @@ public class PathWatcher {
                 .root(Path.of("./data/knowledge"))
                 .listener(new Listener() {
 
-                    private final Tika tika = new Tika();
-
                     @Override
-                    public void onEvent(Event event) throws IOException {
-                        final var path = event.source();
-                        if(event.type() == Type.CREATE) {
-                            System.out.println("%s; exists=%s".formatted(
-                                    path,
-                                    Files.exists(path)
-                            ));
+                    public void onEvent(Event event) {
+                        switch (event.type()) {
+                            case EXISTS -> System.out.printf("[EXISTS] %s%n", event.source());
+                            case CREATE -> System.out.printf("[CREATE] %s%n", event.source());
+                            case MODIFY -> System.out.printf("[MODIFY] %s%n", event.source());
+                            case DELETE -> System.out.printf("[DELETE] %s%n", event.source());
                         }
                     }
 

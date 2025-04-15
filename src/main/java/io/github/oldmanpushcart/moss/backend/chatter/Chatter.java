@@ -30,10 +30,17 @@ public interface Chatter {
     @Accessors(chain = true)
     class Context {
 
-        private boolean deepThinking;
-        private List<File> attachments;
-        private Knowledge.MatchResult knowledgeMatchResult;
         private Long timeline;
+        private List<File> attachments;
+
+        private boolean deepThinkingEnabled;
+
+        private boolean knowledgeEnabled;
+        private Knowledge.MatchResult knowledgeMatchResult;
+
+        public boolean isAttachmentsEnabled() {
+            return attachments != null && !attachments.isEmpty();
+        }
 
     }
 

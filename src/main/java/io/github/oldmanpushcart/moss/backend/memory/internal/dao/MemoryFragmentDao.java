@@ -16,7 +16,9 @@ public interface MemoryFragmentDao {
 
     int update(MemoryFragmentDO fragment);
 
-    MemoryFragmentDO getById(long fragmentId);
+    MemoryFragmentDO getById(
+            @Param("fragmentId") long fragmentId
+    );
 
     List<MemoryFragmentDO> pagingForIterator(
             @Param("maxFragmentId") long maxFragmentId,

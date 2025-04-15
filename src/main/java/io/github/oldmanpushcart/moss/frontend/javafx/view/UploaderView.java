@@ -149,7 +149,7 @@ public class UploaderView extends AnchorPane {
                     .toList();
             final var deleteEntryIds = deleteItems.stream()
                     .map(Item::entry)
-                    .map(Uploader.Entry::entryId)
+                    .map(Uploader.Entry::getEntryId)
                     .toList();
             lock();
             uploader.deleteByIds(deleteEntryIds)
@@ -177,35 +177,35 @@ public class UploaderView extends AnchorPane {
         modelCol.setCellFactory(col -> new TooltipStringTableCell<>());
         modelCol.setCellValueFactory(data -> {
             final var item = data.getValue();
-            return new SimpleStringProperty(item.entry().model());
+            return new SimpleStringProperty(item.entry().getModel());
         });
 
         lengthCol.setCellFactory(col -> new TooltipStringTableCell<>());
         lengthCol.setCellValueFactory(data -> {
             final var item = data.getValue();
-            return new SimpleStringProperty(byteCountToDisplaySize(item.entry().length()));
+            return new SimpleStringProperty(byteCountToDisplaySize(item.entry().getLength()));
         });
 
         filenameCol.setCellFactory(col -> new TooltipStringTableCell<>());
         filenameCol.setCellValueFactory(data -> {
             final var item = data.getValue();
-            final var filename = URLDecoder.decode(String.valueOf(item.entry().filename()), StandardCharsets.UTF_8);
+            final var filename = URLDecoder.decode(String.valueOf(item.entry().getFilename()), StandardCharsets.UTF_8);
             return new SimpleStringProperty(filename);
         });
 
         uploadedCol.setCellFactory(col -> new TooltipStringTableCell<>());
         uploadedCol.setCellValueFactory(data -> {
             final var item = data.getValue();
-            return new SimpleStringProperty(String.valueOf(item.entry().uploaded()));
+            return new SimpleStringProperty(String.valueOf(item.entry().getUploaded()));
         });
 
         expiresAtCol.setCellFactory(col -> new TooltipStringTableCell<>());
         expiresAtCol.setCellValueFactory(data -> {
             final var item = data.getValue();
-            if (null != item.entry().expiresAt()) {
+            if (null != item.entry().getExpiresAt()) {
                 final var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                         .withZone(ZoneId.systemDefault());
-                return new SimpleStringProperty(formatter.format(item.entry().expiresAt()));
+                return new SimpleStringProperty(formatter.format(item.entry().getExpiresAt()));
             } else {
                 return new SimpleStringProperty("永久生效");
             }
@@ -216,7 +216,7 @@ public class UploaderView extends AnchorPane {
             final var item = data.getValue();
             final var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                     .withZone(ZoneId.systemDefault());
-            return new SimpleStringProperty(formatter.format(item.entry().createdAt()));
+            return new SimpleStringProperty(formatter.format(item.entry().getCreatedAt()));
         });
 
         optsCol.setCellValueFactory(data -> {
@@ -259,7 +259,7 @@ public class UploaderView extends AnchorPane {
                                 setStyle("-fx-text-fill: #E34234; -fx-font-weight: bold;");
                                 setOnAction(event -> {
                                     lock();
-                                    uploader.delete(Item.this.entry.entryId())
+                                    uploader.delete(Item.this.entry.getEntryId())
                                             .whenComplete((unused, ex) ->
                                                     Platform.runLater(() -> {
                                                         if (null == ex) {
@@ -278,12 +278,12 @@ public class UploaderView extends AnchorPane {
 
         @Override
         public boolean equals(Object obj) {
-            return obj instanceof Item item && item.entry.entryId() == entry.entryId();
+            return obj instanceof Item item && item.entry.getEntryId() == entry.getEntryId();
         }
 
         @Override
         public int hashCode() {
-            return Long.hashCode(entry.entryId());
+            return Long.hashCode(entry.getEntryId());
         }
 
     }

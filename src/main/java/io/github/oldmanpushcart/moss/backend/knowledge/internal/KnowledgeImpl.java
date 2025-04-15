@@ -41,8 +41,8 @@ public class KnowledgeImpl implements Knowledge {
     public CompletionStage<MatchResult> matches(String query, MatchOption option) {
         return rewriteQuery(query, option)
                 .thenCompose(rwQuery -> {
-                    final var limit = option.limit();
-                    final var distance = option.distance();
+                    final var limit = option.getLimit();
+                    final var distance = option.getDistance();
                     return queryDocumentManager.matches(rwQuery, limit, distance);
                 })
                 .thenApply(itemDOs -> {
@@ -76,7 +76,7 @@ public class KnowledgeImpl implements Knowledge {
         }
 
         // 其他情况则遵循匹配选项的设置
-        return option.rewriteEnabled();
+        return option.isRewriteEnabled();
 
     }
 
@@ -103,7 +103,7 @@ public class KnowledgeImpl implements Knowledge {
 
                 // 添加对话上下文
                 .building(builder -> {
-                    final var messages = option.history();
+                    final var messages = option.getHistory();
                     if (null == messages || messages.isEmpty()) {
                         return;
                     }

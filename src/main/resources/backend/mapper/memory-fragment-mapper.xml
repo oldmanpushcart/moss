@@ -23,6 +23,7 @@
             strftime('%s', 'now') || substr(strftime('%f', 'now'), 4)
         )
     </insert>
+
     <update id="update"
             parameterType="io.github.oldmanpushcart.moss.backend.memory.internal.domain.MemoryFragmentDO">
         UPDATE MEMORY_FRAGMENTS
@@ -42,7 +43,7 @@
             *
         FROM MEMORY_FRAGMENTS
         WHERE
-            FRAGMENT_ID &lt; #{maxFragmentId}
+            FRAGMENT_ID <![CDATA[ < ]]> #{maxFragmentId}
         ORDER BY FRAGMENT_ID DESC
         LIMIT #{limit}
     </select>

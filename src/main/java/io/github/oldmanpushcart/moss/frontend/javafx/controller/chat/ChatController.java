@@ -12,7 +12,6 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -56,6 +55,9 @@ public class ChatController {
 
     @FXML
     private ToggleButton attachmentToggleButton;
+
+    @FXML
+    private ToggleButton knowledgeToggleButton;
 
     @FXML
     private ToggleButton uploaderToggleButton;
@@ -114,9 +116,6 @@ public class ChatController {
             }
         });
 
-        // 输入框获取默认焦点
-        Platform.runLater(() -> inputTextArea.requestFocus());
-
         // 当输入框内容为空时，禁止发送按钮启用
         enterToggleButton.disableProperty()
                 .bind(Bindings.createBooleanBinding(
@@ -132,6 +131,7 @@ public class ChatController {
                         inputTextArea,
                         attachmentListView,
                         deepThinkingToggleButton,
+                        knowledgeToggleButton,
                         enterToggleButton,
                         autoScrollToBottomRef,
                         autoSpeakRef,
@@ -186,7 +186,7 @@ public class ChatController {
 
     public void loadingMemory(List<Memory.Fragment> fragments) {
         fragments.forEach(fragment -> {
-            final var inputText = fragment.requestMessage().text();
+            final var inputText = fragment.getRequestMessage().text();
             messagesBox.getChildren()
                     .add(new MessageView() {{
                         setContent(inputText);
@@ -194,14 +194,14 @@ public class ChatController {
                     }});
             messagesBox.getChildren()
                     .add(new MessageView() {{
-                        setContent(fragment.responseMessage().text());
+                        setContent(fragment.getResponseMessage().text());
                         setButtonBarEnabled(true);
                         setRedoButtonEnabled(false);
                         getSpeakToggleButton()
                                 .setOnAction(new OnSpeakEventHandler(
                                         speakerControl,
                                         speaker,
-                                        Flowable.just(fragment.responseMessage().text())
+                                        Flowable.just(fragment.getResponseMessage().text())
                                 ));
                     }});
         });
@@ -213,6 +213,10 @@ public class ChatController {
 
     public void unlockControlPane() {
         controlPane.setDisable(false);
+    }
+
+    public void focusInputText() {
+        inputTextArea.requestFocus();
     }
 
 }

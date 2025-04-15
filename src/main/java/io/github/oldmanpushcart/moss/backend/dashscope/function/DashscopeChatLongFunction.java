@@ -62,7 +62,7 @@ public class DashscopeChatLongFunction
             stage = stage.thenCompose(list ->
                     uploader.upload(ChatModel.QWEN_LONG, resource)
                             .thenApply(entry -> {
-                                final var content = Content.ofFile(entry.uploaded());
+                                final var content = Content.ofFile(entry.getUploaded());
                                 list.add(content);
                                 return list;
                             }));

@@ -84,7 +84,7 @@ public class MemoryInterceptor implements Interceptor {
                 ? memory.recall(context.getTimeline())
                 : memory.recall();
         return fragments.stream()
-                .flatMap(f -> Stream.of(f.requestMessage(), f.responseMessage()))
+                .flatMap(f -> Stream.of(f.getRequestMessage(), f.getResponseMessage()))
                 .toList();
     }
 
@@ -127,27 +127,26 @@ public class MemoryInterceptor implements Interceptor {
     // 刷新记忆片段
     private void saveOrUpdateMemoryFragment(ChatRequest request, String responseBody) {
 
-        /*
-         * 从对话上下文和对话请求、应答构建记忆片段
-         */
+        // 从对话上下文和对话请求、应答构建记忆片段
         final var context = request.context(Chatter.Context.class);
-        final var fragment = new Memory.Fragment() {{
-            fragmentId(context.getTimeline());
-            requestMessage(requireLastMessageFromUser(request));
-            responseMessage(Message.ofAi(responseBody));
-        }};
+
+        // 构建记忆片段
+        final var fragment = new Memory.Fragment()
+                .setFragmentId(context.getTimeline())
+                .setRequestMessage(requireLastMessageFromUser(request))
+                .setResponseMessage(Message.ofAi(responseBody));
 
         /*
          * 创建或更新记忆片段
          * 此时会回设fragmentId
          */
-        memory.saveOrUpdate(fragment);
+        memory.persist(fragment);
 
         /*
          * 设置上下文时间线
          * 这里是一个补偿设置，如果是创建此时fragment中才有id被赋值
          */
-        context.setTimeline(fragment.fragmentId());
+        context.setTimeline(fragment.getFragmentId());
 
     }
 

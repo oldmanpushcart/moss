@@ -35,6 +35,7 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
     private final TextArea inputTextArea;
     private final AttachmentListView attachmentListView;
     private final ToggleButton deepThinkingToggleButton;
+    private final ToggleButton knowledgeToggleButton;
     private final ToggleButton enterToggleButton;
     private final AtomicBoolean autoScrollToBottomRef;
 
@@ -56,10 +57,10 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
              */
             autoScrollToBottomRef.set(true);
 
-            final var chattingContext = new Chatter.Context() {{
-                setAttachments(selectedAttachments());
-                setDeepThinking(deepThinkingToggleButton.isSelected());
-            }};
+            final var chattingContext = new Chatter.Context()
+                    .setAttachments(selectedAttachments())
+                    .setDeepThinkingEnabled(deepThinkingToggleButton.isSelected())
+                    .setKnowledgeEnabled(knowledgeToggleButton.isSelected());
 
             final var renderingContext = new ChatRenderingContext() {{
                 final var inputText = popInputText();
@@ -180,7 +181,8 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                             .cleanDisplayBuf();
                     chattingContext
                             .setAttachments(selectedAttachments())
-                            .setDeepThinking(deepThinkingToggleButton.isSelected());
+                            .setDeepThinkingEnabled(deepThinkingToggleButton.isSelected())
+                            .setKnowledgeEnabled(knowledgeToggleButton.isSelected());
                     onChat(new CompositeDisposable(), renderingContext, chattingContext);
                 });
         responseMessageView.getSpeakToggleButton()

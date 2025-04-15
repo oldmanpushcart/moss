@@ -139,6 +139,7 @@ public class MossApplication extends Application {
                     Platform.runLater(() -> {
                         chatController.loadingMemory(fragments);
                         chatController.unlockControlPane();
+                        chatController.focusInputText();
                     });
                 });
 
