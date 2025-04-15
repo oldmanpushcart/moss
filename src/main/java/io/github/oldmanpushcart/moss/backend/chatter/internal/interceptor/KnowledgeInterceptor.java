@@ -36,9 +36,14 @@ public class KnowledgeInterceptor implements Interceptor {
             return chain.process(chain.request());
         }
 
+        // 只处理启用了知识库的请求
+        final var context = request.context(Chatter.Context.class);
+        if(!context.isKnowledgeEnabled()) {
+            return chain.process(chain.request());
+        }
+
         return matches(request)
                 .thenCompose(result -> {
-                    final var context = request.context(Chatter.Context.class);
                     context.setKnowledgeMatchResult(result);
                     return chain.process(request);
                 });

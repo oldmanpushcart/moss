@@ -52,36 +52,51 @@ public class RewriteUserMessageInterceptor implements Interceptor {
      * 1. 用户输入内容中追加附件文件信息
      */
     private Message rewriteLastUserMessage(ChatRequest request) {
+
         final var lastUserMessage = requireLastMessageFromUser(request);
         final var context = request.context(Chatter.Context.class);
-        final var knowledgeMatchItems = context.getKnowledgeMatchResult()
-                .items()
-                .stream()
-                .map(Knowledge.MatchResult.Item::content)
-                .toList();
-        final var attachments = context.getAttachments()
-                .stream()
-                .filter(file -> file.exists() && file.canRead() && file.isFile())
-                .map(file ->
-                        new HashMap<String, Object>() {{
-                            put("mime", probeContentType(file));
-                            put("uri", file.toURI().toASCIIString());
-                        }})
-                .toList();
-        return Message.ofUser("""
-                参考资料：
-                %s
-                
-                输入附件：
-                %s
-                
+        final var stringBuf = new StringBuilder();
+
+        if (context.isKnowledgeEnabled()) {
+            final var knowledgeMatchItems = context.getKnowledgeMatchResult()
+                    .items()
+                    .stream()
+                    .map(Knowledge.MatchResult.Item::content)
+                    .toList();
+            stringBuf.append("""
+                    参考资料：
+                    %s
+                    
+                    """.formatted(
+                    JacksonUtils.toJson(knowledgeMatchItems)
+            ));
+        }
+
+        if (context.isAttachmentsEnabled()) {
+            final var attachments = context.getAttachments()
+                    .stream()
+                    .filter(file -> file.exists() && file.canRead() && file.isFile())
+                    .map(file ->
+                            new HashMap<String, Object>() {{
+                                put("mime", probeContentType(file));
+                                put("uri", file.toURI().toASCIIString());
+                            }})
+                    .toList();
+            stringBuf.append("""
+                    输入附件：
+                    %s
+                    
+                    """.formatted(
+                    JacksonUtils.toJson(attachments)
+            ));
+        }
+
+        stringBuf.append("""
                 用户输入：
                 %s
-                """.formatted(
-                JacksonUtils.toJson(knowledgeMatchItems),
-                JacksonUtils.toJson(attachments),
-                lastUserMessage.text()
-        ));
+                """.formatted(lastUserMessage.text()));
+
+        return Message.ofUser(stringBuf.toString());
     }
 
 }

@@ -33,8 +33,10 @@ public class ChatterImpl implements Chatter {
     public CompletionStage<Flowable<ChatResponse>> chat(Context context, String inputText) {
         final var request = newChatRequest(context, inputText);
         return dashscope.chat().flow(request)
-                .whenComplete((v,ex)-> {
-                    if(null != ex) {
+                .thenApply(responseFlow ->
+                        responseFlow.doOnError(ex -> log.warn("moss://chat/flow error!", ex)))
+                .whenComplete((v, ex) -> {
+                    if (null != ex) {
                         log.warn("moss://chat/flow error!", ex);
                     }
                 });
@@ -65,7 +67,7 @@ public class ChatterImpl implements Chatter {
 
     // 决定采用那个对话模型
     private ChatModel decideChatModel(Context context) {
-        return context.isDeepThinking()
+        return context.isDeepThinkingEnabled()
                 ? ChatModel.QWQ_PLUS
                 : ChatModel.QWEN_MAX;
     }

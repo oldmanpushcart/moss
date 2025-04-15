@@ -27,6 +27,6 @@ public class MemoryConfig {
     /**
      * 持续时间
      */
-    private Duration duration = Duration.ofDays(7);
+    private Duration maxDuration = Duration.ofDays(7);
 
 }
