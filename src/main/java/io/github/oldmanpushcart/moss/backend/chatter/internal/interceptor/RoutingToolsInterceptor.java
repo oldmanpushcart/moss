@@ -78,7 +78,7 @@ public class RoutingToolsInterceptor implements Interceptor {
 
     private CompletionStage<List<ChatFunctionTool>> routingTools(DashscopeClient dashscope, ChatRequest request) {
         final var choiceToolsRequest = ChatRequest.newBuilder()
-                .model(ChatModel.QWEN_TURBO)
+                .model(ChatModel.QWEN_MAX)
                 .option(ChatOptions.RESPONSE_FORMAT, ChatOptions.ResponseFormat.JSON)
                 .building(builder -> {
 
@@ -132,7 +132,7 @@ public class RoutingToolsInterceptor implements Interceptor {
                             .toList();
                 })
                 .exceptionally(ex -> {
-                    log.trace("moss://backend/chatter routing tools failed, used empty!", ex);
+                    log.debug("moss://backend/chatter routing tools failed, used empty!", ex);
                     return Collections.emptyList();
                 });
     }

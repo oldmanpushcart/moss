@@ -11,11 +11,13 @@ import io.github.oldmanpushcart.moss.backend.knowledge.internal.manager.QueryDoc
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.concurrent.CompletionStage;
 
 import static io.github.oldmanpushcart.dashscope4j.api.chat.message.Message.Role.AI;
@@ -26,7 +28,7 @@ import static java.util.concurrent.CompletableFuture.completedStage;
 @AllArgsConstructor(onConstructor_ = @Autowired)
 @Slf4j
 @Component
-public class KnowledgeImpl implements Knowledge {
+public class KnowledgeImpl implements Knowledge, InitializingBean {
 
     private final KnowledgeConfig config;
     private final QueryDocumentManager queryDocumentManager;
@@ -120,9 +122,11 @@ public class KnowledgeImpl implements Knowledge {
                 .thenApply(response -> response.output().best().message().text());
     }
 
-    public static void main(String... args) throws IOException {
-        final var content = IOUtils.resourceToString("backend/prompt/knowledge-rewrite-query.md", StandardCharsets.UTF_8);
-        System.out.println(content);
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        if (!Files.exists(config.getLocation())) {
+            Files.createDirectories(config.getLocation());
+        }
     }
 
 }

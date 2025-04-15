@@ -17,6 +17,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLConnection;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
@@ -202,12 +203,44 @@ public class UploaderImpl implements Uploader {
         });
     }
 
+
+    private CompletionStage<Collection<UploadEntryDO>> processFlushForUniqueRemoteDOs(List<UploadEntryDO> remoteDOs) {
+        final var uniqueMap = remoteDOs.stream()
+                .collect(Collectors.toMap(
+                        UploadEntryDO::getUniqueKey,
+                        entry -> entry,
+                        // 解决冲突：保留 createdAt 最新的记录
+                        (e, r) -> e.getCreatedAt().isAfter(r.getCreatedAt()) ? e : r
+                ));
+        CompletionStage<?> stage = completedStage(null);
+        for (final var remoteDO : remoteDOs) {
+            stage = stage.thenCompose(unused -> {
+                if (uniqueMap.containsValue(remoteDO)) {
+                    return completedStage(null);
+                }
+                return dashscope.base().files()
+                        .delete(remoteDO.getUploadId())
+                        .thenApply(v -> {
+                            log.debug("{}/flush delete duplicate remote, file-id={};unique-key={};",
+                                    this,
+                                    remoteDO.getUploadId(),
+                                    remoteDO.getUniqueKey()
+                            );
+                            return null;
+                        });
+            });
+        }
+        return stage
+                .thenApply(v -> uniqueMap.values());
+    }
+
     @Override
     public CompletionStage<List<Entry>> flush() {
         return dashscope.base().files().flow()
                 .map(UploadEntryHelper::toUploadedEntryDO)
                 .collect(Collectors.toList())
                 .toCompletionStage()
+                .thenCompose(this::processFlushForUniqueRemoteDOs)
                 .thenAccept(remoteDOs -> {
 
                     final var remoteDOMap = remoteDOs.stream()
