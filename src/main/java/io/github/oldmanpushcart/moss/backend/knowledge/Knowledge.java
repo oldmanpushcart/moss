@@ -2,6 +2,7 @@ package io.github.oldmanpushcart.moss.backend.knowledge;
 
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import lombok.Data;
+import lombok.Value;
 import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public interface Knowledge {
      * 匹配选项
      */
     @Data
-    @Accessors(chain = true, fluent = true)
+    @Accessors(chain = true)
     class MatchOption {
 
         /**
@@ -63,28 +64,23 @@ public interface Knowledge {
 
     /**
      * 匹配结果
-     *
-     * @param items 匹配结果项集合
      */
-    record MatchResult(
-            List<Item> items
-    ) {
+    @Value
+    class MatchResult {
+
+        List<Item> items;
 
         public boolean isEmpty() {
-            return items.isEmpty();
+            return null == items || items.isEmpty();
         }
 
         /**
          * 匹配结果项
-         *
-         * @param content  内容
-         * @param distance 距离
          */
-        public record Item(
-                String content,
-                float distance
-        ) {
-
+        @Value
+        public static class Item {
+            String content;
+            float distance;
         }
 
     }

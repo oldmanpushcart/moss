@@ -1,6 +1,8 @@
 package io.github.oldmanpushcart.moss.backend.uploader;
 
 import io.github.oldmanpushcart.dashscope4j.Model;
+import lombok.Value;
+import lombok.experimental.Accessors;
 
 import java.net.URI;
 import java.time.Instant;
@@ -36,6 +38,12 @@ public interface Uploader {
      */
     CompletionStage<?> delete(long entryId);
 
+    /**
+     * 批量删除缓存条目
+     *
+     * @param entryIds 条目ID集合
+     * @return 删除操作结果
+     */
     CompletionStage<?> deleteByIds(List<Long> entryIds);
 
     /**
@@ -47,27 +55,18 @@ public interface Uploader {
 
     /**
      * 上传条目
-     *
-     * @param entryId   条目ID
-     * @param uniqueKey 上传唯一键
-     * @param model     使用模型
-     * @param length    文件大小
-     * @param filename  文件名称
-     * @param uploaded  上传地址
-     * @param expiresAt 过期时间
-     * @param createdAt 创建时间
      */
-    record Entry(
-            long entryId,
-            String uniqueKey,
-            String model,
-            long length,
-            String filename,
-            URI uploaded,
-            Instant expiresAt,
-            Instant createdAt
-    ) {
-
+    @Value
+    @Accessors(chain = true)
+    class Entry {
+        long entryId;
+        String uniqueKey;
+        String model;
+        long length;
+        String filename;
+        URI uploaded;
+        Instant expiresAt;
+        Instant createdAt;
     }
 
 }

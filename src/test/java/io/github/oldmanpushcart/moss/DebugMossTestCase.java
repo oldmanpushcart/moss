@@ -17,7 +17,7 @@ public class DebugMossTestCase extends SpringSupported {
                         明天天气如何？
                         """)
                 .thenAccept(result-> {
-                    for (final var item : result.items()) {
+                    for (final var item : result.getItems()) {
                         System.out.println(item);
                     }
                 })

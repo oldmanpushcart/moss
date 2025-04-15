@@ -61,7 +61,7 @@ public class DashscopeChatVisionFunction
             stage = stage.thenCompose(list ->
                     uploader.upload(ChatModel.QWEN_VL_PLUS, resource)
                             .thenApply(entry -> {
-                                final var content = Content.ofImage(entry.uploaded());
+                                final var content = Content.ofImage(entry.getUploaded());
                                 list.add(content);
                                 return list;
                             }));

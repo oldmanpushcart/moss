@@ -52,7 +52,7 @@ public class KnowledgeInterceptor implements Interceptor {
     private CompletionStage<Knowledge.MatchResult> matches(ChatRequest request) {
         final var query = requireLastMessageFromUser(request).text();
         final var option = new Knowledge.MatchOption()
-                .history(requireHistoryMessages(request));
+                .setHistory(requireHistoryMessages(request));
         return knowledge.matches(query, option);
     }
 

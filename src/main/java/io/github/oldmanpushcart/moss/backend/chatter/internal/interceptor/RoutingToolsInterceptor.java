@@ -6,15 +6,16 @@ import io.github.oldmanpushcart.dashscope4j.api.chat.ChatModel;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatOptions;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatRequest;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
-import io.github.oldmanpushcart.dashscope4j.api.chat.tool.Tool;
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFunction;
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFunctionTool;
 import io.github.oldmanpushcart.moss.util.CommonUtils;
 import io.github.oldmanpushcart.moss.util.JacksonUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
@@ -26,6 +27,7 @@ import static io.github.oldmanpushcart.moss.util.DashscopeUtils.isLastMessageFro
 /**
  * 路由工具拦截器
  */
+@Slf4j
 @Component
 public class RoutingToolsInterceptor implements Interceptor {
 
@@ -74,7 +76,7 @@ public class RoutingToolsInterceptor implements Interceptor {
                 .thenCompose(chain::process);
     }
 
-    private CompletionStage<Collection<? extends Tool>> routingTools(DashscopeClient dashscope, ChatRequest request) {
+    private CompletionStage<List<ChatFunctionTool>> routingTools(DashscopeClient dashscope, ChatRequest request) {
         final var choiceToolsRequest = ChatRequest.newBuilder()
                 .model(ChatModel.QWEN_TURBO)
                 .option(ChatOptions.RESPONSE_FORMAT, ChatOptions.ResponseFormat.JSON)
@@ -106,11 +108,11 @@ public class RoutingToolsInterceptor implements Interceptor {
                     )));
 
                 })
-                .building(builder-> {
+                .building(builder -> {
 
                     final var messages = request.messages()
                             .stream()
-                            .filter(message-> CommonUtils.isIn(message.role(), Message.Role.USER, Message.Role.AI))
+                            .filter(message -> CommonUtils.isIn(message.role(), Message.Role.USER, Message.Role.AI))
                             .toList();
 
                     builder.addMessages(messages);
@@ -128,6 +130,10 @@ public class RoutingToolsInterceptor implements Interceptor {
                     return tools.stream()
                             .filter(tool -> fnNameSet.contains(tool.meta().name()))
                             .toList();
+                })
+                .exceptionally(ex -> {
+                    log.trace("moss://backend/chatter routing tools failed, used empty!", ex);
+                    return Collections.emptyList();
                 });
     }
 

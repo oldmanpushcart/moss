@@ -59,9 +59,9 @@ public class RewriteUserMessageInterceptor implements Interceptor {
 
         if (context.isKnowledgeEnabled()) {
             final var knowledgeMatchItems = context.getKnowledgeMatchResult()
-                    .items()
+                    .getItems()
                     .stream()
-                    .map(Knowledge.MatchResult.Item::content)
+                    .map(Knowledge.MatchResult.Item::getContent)
                     .toList();
             stringBuf.append("""
                     参考资料：
