@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <title>CHAT BOX</title>
     <link rel="stylesheet" href="../css/github-markdown-light.min.css"/>
+
     <!--
     <script type='text/javascript' src='https://cdn.jsdelivr.net/npm/firebug-lite-ie@1.5.3/build/firebug-lite-debug.min.js#startOpened=1'></script>
     -->
+
     <script type='text/javascript' src="../js/js-bridge.js"></script>
 
 </head>
@@ -23,7 +25,7 @@
         const resizeObserver = new ResizeObserver(() => {
             const newHeight = document.documentElement.scrollHeight;
             JsBridge.call("onDocumentElementScrollHeightChanged", newHeight)
-                .catch(error => console.error("Error notifying height change:", error));
+                .catch(error => console.error(error));
         });
 
         // 开始监听整个文档的高度变化
@@ -31,11 +33,25 @@
 
     }
 
+    // 设置链接点击事件
+    function setupLinkClick() {
+        const messageContentElemenet = document.getElementById("message-content");
+        messageContentElemenet.addEventListener('click', function(event) {
+            const anchor = event.target.closest('a');
+            if (anchor) {
+                event.preventDefault();
+                JsBridge.call("onLinkClick", anchor.href)
+                    .catch(error => console.error(error));
+            }
+        });
+    }
+
     // 页面加载完成后初始化
     window.onload = () => {
         if (JsBridge) {
             JsBridge.onComplete(()=>{
                 setupDocumentElementScrollHeightChangeObserver();
+                setupLinkClick();
             });
         }
     };

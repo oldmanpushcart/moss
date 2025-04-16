@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static io.github.oldmanpushcart.moss.backend.memory.internal.MemoryHelper.toMemoryFragment;
@@ -52,6 +53,7 @@ public class MemoryImpl implements Memory {
 
         }
 
+        Collections.sort(fragments);
         return fragments;
     }
 
