@@ -44,7 +44,7 @@ public interface Memory {
      */
     @Data
     @Accessors(chain = true)
-    class Fragment {
+    class Fragment implements Comparable<Fragment> {
 
         private Long fragmentId;
         private Long tokens;
@@ -55,6 +55,11 @@ public interface Memory {
 
         public Fragment self() {
             return this;
+        }
+
+        @Override
+        public int compareTo(Memory.Fragment o) {
+            return Long.compare(this.fragmentId, o.fragmentId);
         }
 
     }

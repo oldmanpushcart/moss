@@ -2,6 +2,7 @@ package io.github.oldmanpushcart.moss.backend.chatter.internal;
 
 import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.dashscope4j.api.chat.*;
+import io.github.oldmanpushcart.dashscope4j.api.chat.ChatSearchOption.SearchStrategy;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
 import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.*;
@@ -37,7 +38,7 @@ public class ChatterImpl implements Chatter {
                         responseFlow.doOnError(ex -> log.warn("moss://chat/flow error!", ex)))
                 .whenComplete((v, ex) -> {
                     if (null != ex) {
-                        log.warn("moss://chat/flow error!", ex);
+                        log.warn("moss://chat error!", ex);
                     }
                 });
     }
@@ -49,11 +50,10 @@ public class ChatterImpl implements Chatter {
                 .model(decideChatModel(context))
                 .option(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true)
                 .option(ChatOptions.ENABLE_WEB_SEARCH, true)
-                .option(ChatOptions.SEARCH_OPTIONS, new ChatSearchOption() {{
-                    forcedSearch(false);
-                    searchStrategy(SearchStrategy.STANDARD);
-                    enableSource();
-                }})
+                .option(ChatOptions.SEARCH_OPTIONS, new ChatSearchOption()
+                        .forcedSearch(false)
+                        .enableSource(true)
+                        .searchStrategy(SearchStrategy.STANDARD))
                 .addInterceptors(List.of(
                         memoryInterceptor,
                         knowledgeInterceptor,

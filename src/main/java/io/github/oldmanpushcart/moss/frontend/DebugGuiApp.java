@@ -11,6 +11,11 @@ public class DebugGuiApp extends Application {
     public void start(Stage primaryStage) throws Exception {
 
         final var messageView = new MessageView();
+
+
+        primaryStage.setScene(new Scene(messageView));
+        primaryStage.show();
+
         messageView.setContent("""
                 ## 个人信息
                 |项目|值|
@@ -18,11 +23,9 @@ public class DebugGuiApp extends Application {
                 |姓名|李夏驰|
                 |邮箱|oldmanpushcart@gmail.com|
                 |电话|13989838402|
+                |主页|[Github](https://github.com/oldmanpushcart)|
                 """
         );
-
-        primaryStage.setScene(new Scene(messageView));
-        primaryStage.show();
     }
 
     public static void main(String[] args) {

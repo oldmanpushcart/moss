@@ -80,6 +80,8 @@ public class MossApplication extends Application {
                     try {
                         final var arguments = getParameters().getRaw().toArray(new String[0]);
                         final var springApp = new SpringApplication(MossApplication.class);
+                        //System.setProperty("java.awt.headless", "true");
+                        springApp.setHeadless(false);
                         springApp.addListeners(
 
                                 // 监听启动开始

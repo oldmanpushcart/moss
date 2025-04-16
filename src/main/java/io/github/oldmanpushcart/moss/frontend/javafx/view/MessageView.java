@@ -21,15 +21,20 @@ import javafx.scene.layout.HBox;
 import javafx.scene.web.WebView;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 
+import java.awt.*;
+import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Objects.requireNonNull;
 
+@Slf4j
 public class MessageView extends AnchorPane {
 
     private static final String PAGE = "/frontend/statics/html/message-view-index.html";
@@ -119,6 +124,23 @@ public class MessageView extends AnchorPane {
                  */
                 .register("onDocumentElementScrollHeightChanged", (identity, argumentJson) -> {
                     adjustContentViewHeight();
+                    return null;
+                })
+
+                // 监听链接点击，并打开浏览器
+                .register("onLinkClick", (identity, argumentJson) -> {
+                    log.debug("moss://frontend/message-view open desktop browser! href={}", argumentJson);
+                    if (Desktop.isDesktopSupported()) {
+                        final var desktop = Desktop.getDesktop();
+                        try {
+                            final var href = JacksonUtils.toObject(argumentJson, String.class);
+                            desktop.browse(URI.create(href));
+                        } catch (Exception ex) {
+                            log.warn("moss://frontend/message-view open desktop browser error! args={}", argumentJson, ex);
+                        }
+                    } else {
+                        log.debug("moss://frontend/message-view not support desktop browser! args={}", argumentJson);
+                    }
                     return null;
                 });
 
