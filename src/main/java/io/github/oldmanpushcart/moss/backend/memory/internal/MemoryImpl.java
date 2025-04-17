@@ -27,17 +27,22 @@ public class MemoryImpl implements Memory {
     private final MemoryFragmentManager memoryFragmentManager;
 
     @Override
-    public List<Fragment> recall() {
-        return recall(Long.MAX_VALUE);
+    public Long getMaxFragmentId() {
+        return memoryFragmentManager.getMaxFragmentId();
     }
 
     @Override
-    public List<Fragment> recall(long beginFragmentId) {
+    public List<Fragment> recall(long endFragmentId) {
+        return recall(Long.MAX_VALUE, endFragmentId);
+    }
+
+    @Override
+    public List<Fragment> recall(long beginFragmentId, long endFragmentId) {
 
         final var fragments = new ArrayList<Fragment>();
         long tokens = 0;
 
-        final var fragmentDOIt = memoryFragmentManager.iterator(beginFragmentId);
+        final var fragmentDOIt = memoryFragmentManager.iterator(beginFragmentId, endFragmentId);
         while (fragmentDOIt.hasNext()) {
 
             final var fragmentDO = fragmentDOIt.next();

@@ -13,11 +13,18 @@ import java.util.List;
 public interface Memory {
 
     /**
+     * 获取最大片段ID
+     *
+     * @return 最大片段ID
+     */
+    Long getMaxFragmentId();
+
+    /**
      * 回忆
      *
      * @return 回忆起来的记忆片段集合
      */
-    List<Fragment> recall();
+    List<Fragment> recall(long endFragmentId);
 
     /**
      * 回忆
@@ -25,7 +32,7 @@ public interface Memory {
      * @param beginFragmentId 开始回忆片段ID
      * @return 回忆起来的记忆片段集合
      */
-    List<Fragment> recall(long beginFragmentId);
+    List<Fragment> recall(long beginFragmentId, long endFragmentId);
 
     /**
      * 持久化

@@ -26,7 +26,7 @@
             #{uploadId},
             #{uploaded},
             #{expiresAt},
-            #{createdAt}
+            CAST(strftime('%s', 'now') || substr(strftime('%f', 'now'), 4) AS INTEGER)
         )
     </insert>
 

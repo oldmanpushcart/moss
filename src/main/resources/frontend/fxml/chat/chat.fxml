@@ -5,15 +5,22 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<AnchorPane prefHeight="800.0" prefWidth="600.0"
-            xmlns="http://javafx.com/javafx/17.0.12"
+<AnchorPane prefHeight="800.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="io.github.oldmanpushcart.moss.frontend.javafx.controller.chat.ChatController">
 
     <BorderPane layoutX="209.0" layoutY="69.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0"
                 AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <top>
+            <MenuBar BorderPane.alignment="CENTER">
+                <Menu text="对话记忆[_C]">
+                    <MenuItem fx:id="clearMemoryMenuItem" text="清空记忆[_K]" accelerator="ALT+K"/>
+                </Menu>
+            </MenuBar>
+        </top>
         <center>
-            <ScrollPane fx:id="messagesScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS" BorderPane.alignment="CENTER">
+            <ScrollPane fx:id="messagesScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS"
+                        BorderPane.alignment="CENTER">
                 <VBox fx:id="messagesBox" spacing="20.0">
                     <padding>
                         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
@@ -39,6 +46,7 @@
                 </ToolBar>
             </VBox>
         </bottom>
+
     </BorderPane>
 
 </AnchorPane>

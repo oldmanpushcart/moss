@@ -21,6 +21,11 @@ public class MemoryFragmentManagerImpl implements MemoryFragmentManager {
     private final MemoryFragmentDao memoryFragmentDao;
 
     @Override
+    public Long getMaxFragmentId() {
+        return memoryFragmentDao.getMaxFragmentId();
+    }
+
+    @Override
     public void saveOrUpdate(MemoryFragmentDO fragmentDO) {
         if (null == fragmentDO.getFragmentId()) {
             memoryFragmentDao.insert(fragmentDO);
@@ -35,7 +40,7 @@ public class MemoryFragmentManagerImpl implements MemoryFragmentManager {
     }
 
     @Override
-    public Iterator<MemoryFragmentDO> iterator(long beginFragmentId) {
+    public Iterator<MemoryFragmentDO> iterator(long beginFragmentId, long endFragmentId) {
         return new Iterator<>() {
 
             private static final int PAGE_SIZE = 100;
@@ -50,7 +55,7 @@ public class MemoryFragmentManagerImpl implements MemoryFragmentManager {
             private boolean fetchNextPage() {
 
                 // 翻页查询下一页数据
-                final var nextPage = memoryFragmentDao.pagingForIterator(pageMaxFragmentId, PAGE_SIZE);
+                final var nextPage = memoryFragmentDao.pagingForIterator(pageMaxFragmentId, endFragmentId, PAGE_SIZE);
                 if (null != nextPage && !nextPage.isEmpty()) {
                     pageMaxFragmentId = nextPage.get(nextPage.size() - 1).getFragmentId();
                     pageIt = nextPage.iterator();
