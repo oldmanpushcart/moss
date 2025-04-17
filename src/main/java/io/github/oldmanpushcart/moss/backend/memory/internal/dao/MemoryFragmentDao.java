@@ -20,8 +20,11 @@ public interface MemoryFragmentDao {
             @Param("fragmentId") long fragmentId
     );
 
+    Long getMaxFragmentId();
+
     List<MemoryFragmentDO> pagingForIterator(
-            @Param("maxFragmentId") long maxFragmentId,
+            @Param("beginFragmentId") long beginFragmentId,
+            @Param("endFragmentId") long endFragmentId,
             @Param("limit") int limit
     );
 

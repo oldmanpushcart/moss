@@ -30,7 +30,7 @@ public interface Chatter {
     @Accessors(chain = true)
     class Context {
 
-        private Long timeline;
+        private Long chatFragmentId;
         private List<File> attachments;
 
         private boolean deepThinkingEnabled;

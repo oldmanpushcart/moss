@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.oldmanpushcart.moss.backend.config.internal.dao.PersistConfigEntryDao">
+
+    <insert id="insert"
+            keyProperty="key"
+            keyColumn="FRAGMENT_ID">
+        INSERT INTO PERSIST_CONFIG_ENTRIES
+        (
+            KEY,
+            VALUE,
+            DESCRIPTION,
+            CREATED_AT,
+            UPDATED_AT
+        )
+        VALUES (
+            #{key},
+            #{value},
+            #{description},
+            CAST(strftime('%s', 'now') || substr(strftime('%f', 'now'), 4) AS INTEGER),
+            CAST(strftime('%s', 'now') || substr(strftime('%f', 'now'), 4) AS INTEGER)
+        )
+    </insert>
+
+    <update id="updateValue">
+        UPDATE PERSIST_CONFIG_ENTRIES
+        SET
+            VALUE = #{value},
+            UPDATED_AT = CAST(strftime('%s', 'now') || substr(strftime('%f', 'now'), 4) AS INTEGER)
+        WHERE
+            KEY = #{key}
+    </update>
+
+    <update id="casUpdateValue">
+        UPDATE PERSIST_CONFIG_ENTRIES
+        SET
+            VALUE = #{newValue},
+            UPDATED_AT = CAST(strftime('%s', 'now') || substr(strftime('%f', 'now'), 4) AS INTEGER)
+        WHERE
+            KEY = #{key}
+            AND VALUE = #{expectedValue}
+    </update>
+
+    <select id="getByKey"
+            resultType="io.github.oldmanpushcart.moss.backend.config.internal.domain.PersistConfigEntryDO">
+        SELECT
+            *
+        FROM PERSIST_CONFIG_ENTRIES
+        WHERE
+            KEY = #{key}
+    </select>
+
+</mapper>

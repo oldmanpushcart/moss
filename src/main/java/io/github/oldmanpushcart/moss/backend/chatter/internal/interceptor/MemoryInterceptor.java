@@ -6,6 +6,8 @@ import io.github.oldmanpushcart.dashscope4j.api.chat.ChatRequest;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatResponse;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
 import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
+import io.github.oldmanpushcart.moss.backend.config.PersisConfigConstants;
+import io.github.oldmanpushcart.moss.backend.config.PersistConfig;
 import io.github.oldmanpushcart.moss.backend.memory.Memory;
 import io.reactivex.rxjava3.core.Flowable;
 import lombok.AllArgsConstructor;
@@ -26,6 +28,7 @@ import static io.github.oldmanpushcart.moss.util.DashscopeUtils.*;
 public class MemoryInterceptor implements Interceptor {
 
     private final Memory memory;
+    private final PersistConfig persistConfig;
 
     @Override
     public CompletionStage<?> intercept(Chain chain) {
@@ -80,9 +83,10 @@ public class MemoryInterceptor implements Interceptor {
     // 回忆对话历史记录
     private List<Message> recall(ChatRequest request) {
         final var context = request.context(Chatter.Context.class);
-        final var fragments = null != context.getTimeline()
-                ? memory.recall(context.getTimeline())
-                : memory.recall();
+        final var endFragmentId = Long.parseLong(persistConfig.getValue(PersisConfigConstants.KEY_MEMORY_RECALL_MIN_FRAGMENT_ID));
+        final var fragments = null != context.getChatFragmentId()
+                ? memory.recall(context.getChatFragmentId(), endFragmentId)
+                : memory.recall(endFragmentId);
         return fragments.stream()
                 .flatMap(f -> Stream.of(f.getRequestMessage(), f.getResponseMessage()))
                 .toList();
@@ -132,7 +136,7 @@ public class MemoryInterceptor implements Interceptor {
 
         // 构建记忆片段
         final var fragment = new Memory.Fragment()
-                .setFragmentId(context.getTimeline())
+                .setFragmentId(context.getChatFragmentId())
                 .setRequestMessage(requireLastMessageFromUser(request))
                 .setResponseMessage(Message.ofAi(responseBody));
 
@@ -146,7 +150,7 @@ public class MemoryInterceptor implements Interceptor {
          * 设置上下文时间线
          * 这里是一个补偿设置，如果是创建此时fragment中才有id被赋值
          */
-        context.setTimeline(fragment.getFragmentId());
+        context.setChatFragmentId(fragment.getFragmentId());
 
     }
 

@@ -19,8 +19,8 @@
             #{tokens},
             #{requestMessageJson},
             #{responseMessageJson},
-            strftime('%s', 'now') || substr(strftime('%f', 'now'), 4),
-            strftime('%s', 'now') || substr(strftime('%f', 'now'), 4)
+            CAST(strftime('%s', 'now') || substr(strftime('%f', 'now'), 4) AS INTEGER),
+            CAST(strftime('%s', 'now') || substr(strftime('%f', 'now'), 4) AS INTEGER)
         )
     </insert>
 
@@ -31,7 +31,7 @@
             <if test="tokens != null">TOKENS = #{tokens},</if>
             <if test="requestMessageJson != null">REQUEST_MESSAGE_JSON = #{requestMessageJson},</if>
             <if test="responseMessageJson != null">RESPONSE_MESSAGE_JSON = #{responseMessageJson},</if>
-            UPDATED_AT = strftime('%s', 'now') || substr(strftime('%f', 'now'), 4)
+            UPDATED_AT = CAST(strftime('%s', 'now') || substr(strftime('%f', 'now'), 4) AS INTEGER)
         </set>
         WHERE
             FRAGMENT_ID = #{fragmentId}
@@ -43,7 +43,8 @@
             *
         FROM MEMORY_FRAGMENTS
         WHERE
-            FRAGMENT_ID <![CDATA[ < ]]> #{maxFragmentId}
+            FRAGMENT_ID <![CDATA[ < ]]> #{beginFragmentId}
+            AND FRAGMENT_ID <![CDATA[ > ]]> #{endFragmentId}
         ORDER BY FRAGMENT_ID DESC
         LIMIT #{limit}
     </select>
@@ -55,6 +56,12 @@
         FROM MEMORY_FRAGMENTS
         WHERE
             FRAGMENT_ID = #{fragmentId}
+    </select>
+
+    <select id="getMaxFragmentId" resultType="java.lang.Long">
+        SELECT
+            MAX(FRAGMENT_ID)
+        FROM MEMORY_FRAGMENTS
     </select>
 
 </mapper>

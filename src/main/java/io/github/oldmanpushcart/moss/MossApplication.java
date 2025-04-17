@@ -1,6 +1,7 @@
 package io.github.oldmanpushcart.moss;
 
 import io.github.oldmanpushcart.moss.backend.boot.BootEvent;
+import io.github.oldmanpushcart.moss.backend.config.PersistConfig;
 import io.github.oldmanpushcart.moss.backend.memory.Memory;
 import io.github.oldmanpushcart.moss.frontend.javafx.controller.SplashController;
 import io.github.oldmanpushcart.moss.frontend.javafx.controller.chat.ChatController;
@@ -25,6 +26,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+
+import static io.github.oldmanpushcart.moss.backend.config.PersisConfigConstants.KEY_MEMORY_RECALL_MIN_FRAGMENT_ID;
 
 @Slf4j
 @EnableScheduling
@@ -137,7 +140,9 @@ public class MossApplication extends Application {
 
                 // 异步加载记忆
                 .thenAccept(chatController -> {
-                    final var fragments = springCtx.getBean(Memory.class).recall();
+                    final var persistConfig = springCtx.getBean(PersistConfig.class);
+                    final var recallMinFragmentId = Long.parseLong(persistConfig.getValue(KEY_MEMORY_RECALL_MIN_FRAGMENT_ID));
+                    final var fragments = springCtx.getBean(Memory.class).recall(recallMinFragmentId);
                     Platform.runLater(() -> {
                         chatController.loadingMemory(fragments);
                         chatController.unlockControlPane();

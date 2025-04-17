@@ -43,7 +43,7 @@ moss:
         size: 500
         overlap: 100
       query:
-        limit: 3
+        limit: 10
         rewrite-enabled: true
 
     # 文件上传

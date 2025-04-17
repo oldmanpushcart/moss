@@ -6,10 +6,12 @@ import java.util.Iterator;
 
 public interface MemoryFragmentManager {
 
+    Long getMaxFragmentId();
+
     void saveOrUpdate(MemoryFragmentDO fragmentDO);
 
     MemoryFragmentDO getById(long fragmentId);
 
-    Iterator<MemoryFragmentDO> iterator(long beginFragmentId);
+    Iterator<MemoryFragmentDO> iterator(long beginFragmentId, long endFragmentId);
 
 }

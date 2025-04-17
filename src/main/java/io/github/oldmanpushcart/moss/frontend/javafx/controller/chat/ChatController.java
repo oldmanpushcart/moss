@@ -2,6 +2,7 @@ package io.github.oldmanpushcart.moss.frontend.javafx.controller.chat;
 
 import io.github.oldmanpushcart.moss.backend.audio.Speaker;
 import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
+import io.github.oldmanpushcart.moss.backend.config.PersistConfig;
 import io.github.oldmanpushcart.moss.backend.memory.Memory;
 import io.github.oldmanpushcart.moss.backend.uploader.Uploader;
 import io.github.oldmanpushcart.moss.frontend.javafx.view.AttachmentListView;
@@ -16,6 +17,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleButton;
@@ -30,6 +32,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static io.github.oldmanpushcart.moss.backend.config.PersisConfigConstants.KEY_MEMORY_RECALL_MIN_FRAGMENT_ID;
 
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Component
@@ -71,9 +75,14 @@ public class ChatController {
     @FXML
     private Pane controlPane;
 
+    @FXML
+    private MenuItem clearMemoryMenuItem;
+
     private final Speaker speaker;
     private final Chatter chatter;
     private final Uploader uploader;
+    private final Memory memory;
+    private final PersistConfig persistConfig;
 
     private final AtomicBoolean autoSpeakRef = new AtomicBoolean(false);
     private final AtomicBoolean autoScrollToBottomRef = new AtomicBoolean(true);
@@ -140,6 +149,29 @@ public class ChatController {
                         speaker,
                         chatter
                 ));
+
+        // 清除历史记录菜单
+        clearMemoryMenuItem.setOnAction(event -> {
+
+            /*
+             * 获取最大片段ID
+             * 如果为空则说明当前没有任何对话，不需要进行清空操作
+             */
+            final var maxFragmentId = memory.getMaxFragmentId();
+            if (null == maxFragmentId) {
+                return;
+            }
+
+            /*
+             * 重置最小片段ID
+             * 清空对话聊天内容
+             */
+            if (persistConfig.update(KEY_MEMORY_RECALL_MIN_FRAGMENT_ID, String.valueOf(maxFragmentId))) {
+                messagesBox.getChildren().clear();
+            }
+
+        });
+
 
         // 绑定自动滚动
         bindingMessagesScrollPaneAutoScrollToBottom();
