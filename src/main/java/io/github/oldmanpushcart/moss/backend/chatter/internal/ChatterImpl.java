@@ -4,8 +4,12 @@ import io.github.oldmanpushcart.dashscope4j.DashscopeClient;
 import io.github.oldmanpushcart.dashscope4j.api.chat.*;
 import io.github.oldmanpushcart.dashscope4j.api.chat.ChatSearchOption.SearchStrategy;
 import io.github.oldmanpushcart.dashscope4j.api.chat.message.Message;
+import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFunctionTool;
 import io.github.oldmanpushcart.moss.backend.chatter.Chatter;
-import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.*;
+import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.KnowledgeInterceptor;
+import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.MemoryInterceptor;
+import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.RewriteUserMessageInterceptor;
+import io.github.oldmanpushcart.moss.backend.chatter.internal.interceptor.SystemPromptInterceptor;
 import io.reactivex.rxjava3.core.Flowable;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -25,10 +30,11 @@ public class ChatterImpl implements Chatter {
 
     private final DashscopeClient dashscope;
     private final MemoryInterceptor memoryInterceptor;
-    private final RoutingToolsInterceptor routingToolsInterceptor;
+    // private final RoutingToolsInterceptor routingToolsInterceptor;
     private final SystemPromptInterceptor systemPromptInterceptor;
     private final RewriteUserMessageInterceptor rewriteUserMessageInterceptor;
     private final KnowledgeInterceptor knowledgeInterceptor;
+    private final Set<ChatFunctionTool> functionTools;
 
     @Override
     public CompletionStage<Flowable<ChatResponse>> chat(Context context, String inputText) {
@@ -48,8 +54,10 @@ public class ChatterImpl implements Chatter {
         return ChatRequest.newBuilder()
                 .context(Chatter.Context.class, context)
                 .model(decideChatModel(context))
+                .tools(functionTools)
+                .option(ChatOptions.ENABLE_PARALLEL_TOOL_CALLS, true)
                 .option(ChatOptions.ENABLE_INCREMENTAL_OUTPUT, true)
-                .option(ChatOptions.ENABLE_WEB_SEARCH, true)
+                .option(ChatOptions.ENABLE_WEB_SEARCH, context.isWebSearchEnabled())
                 .option(ChatOptions.SEARCH_OPTIONS, new ChatSearchOption()
                         .forcedSearch(false)
                         .enableSource(true)
@@ -58,7 +66,7 @@ public class ChatterImpl implements Chatter {
                         memoryInterceptor,
                         knowledgeInterceptor,
                         rewriteUserMessageInterceptor,
-                        routingToolsInterceptor,
+                        //routingToolsInterceptor,
                         systemPromptInterceptor
                 ))
                 .addMessage(Message.ofUser(inputText))

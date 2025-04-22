@@ -36,6 +36,7 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
     private final AttachmentListView attachmentListView;
     private final ToggleButton deepThinkingToggleButton;
     private final ToggleButton knowledgeToggleButton;
+    private final ToggleButton  webSearchToggleButton;
     private final ToggleButton enterToggleButton;
     private final AtomicBoolean autoScrollToBottomRef;
 
@@ -60,7 +61,8 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
             final var chattingContext = new Chatter.Context()
                     .setAttachments(selectedAttachments())
                     .setDeepThinkingEnabled(deepThinkingToggleButton.isSelected())
-                    .setKnowledgeEnabled(knowledgeToggleButton.isSelected());
+                    .setKnowledgeEnabled(knowledgeToggleButton.isSelected())
+                    .setWebSearchEnabled(webSearchToggleButton.isSelected());
 
             final var renderingContext = new ChatRenderingContext() {{
                 final var inputText = popInputText();
@@ -182,7 +184,8 @@ class OnEnterEventHandler implements EventHandler<ActionEvent> {
                     chattingContext
                             .setAttachments(selectedAttachments())
                             .setDeepThinkingEnabled(deepThinkingToggleButton.isSelected())
-                            .setKnowledgeEnabled(knowledgeToggleButton.isSelected());
+                            .setKnowledgeEnabled(knowledgeToggleButton.isSelected())
+                            .setWebSearchEnabled(webSearchToggleButton.isSelected());
                     onChat(new CompositeDisposable(), renderingContext, chattingContext);
                 });
         responseMessageView.getSpeakToggleButton()
