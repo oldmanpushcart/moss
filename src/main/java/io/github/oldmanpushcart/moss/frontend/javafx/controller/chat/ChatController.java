@@ -64,6 +64,9 @@ public class ChatController {
     private ToggleButton knowledgeToggleButton;
 
     @FXML
+    private ToggleButton webSearchToggleButton;
+
+    @FXML
     private ToggleButton uploaderToggleButton;
 
     @FXML
@@ -141,6 +144,7 @@ public class ChatController {
                         attachmentListView,
                         deepThinkingToggleButton,
                         knowledgeToggleButton,
+                        webSearchToggleButton,
                         enterToggleButton,
                         autoScrollToBottomRef,
                         autoSpeakRef,

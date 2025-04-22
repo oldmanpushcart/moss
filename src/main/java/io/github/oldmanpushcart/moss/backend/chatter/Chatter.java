@@ -34,6 +34,7 @@ public interface Chatter {
         private List<File> attachments;
 
         private boolean deepThinkingEnabled;
+        private boolean webSearchEnabled;
 
         private boolean knowledgeEnabled;
         private Knowledge.MatchResult knowledgeMatchResult;
