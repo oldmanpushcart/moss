@@ -10,6 +10,7 @@ import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFunction;
 import io.github.oldmanpushcart.dashscope4j.api.chat.tool.function.ChatFunctionTool;
 import io.github.oldmanpushcart.moss.util.CommonUtils;
 import io.github.oldmanpushcart.moss.util.JacksonUtils;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,22 +28,13 @@ import static io.github.oldmanpushcart.moss.util.DashscopeUtils.isLastMessageFro
 /**
  * 路由工具拦截器
  */
+@AllArgsConstructor(onConstructor_ = @Autowired)
 @Slf4j
 @Component
 public class RoutingToolsInterceptor implements Interceptor {
 
-    private final Set<ChatFunctionTool> tools;
-
     @Autowired
-    public RoutingToolsInterceptor(Set<ChatFunction<?, ?>> functions) {
-        this.tools = buildingTools(functions);
-    }
-
-    private static Set<ChatFunctionTool> buildingTools(Set<ChatFunction<?, ?>> functions) {
-        return functions.stream()
-                .map(ChatFunctionTool::of)
-                .collect(Collectors.toUnmodifiableSet());
-    }
+    private final Set<ChatFunctionTool> tools;
 
     @Override
     public CompletionStage<?> intercept(Chain chain) {
